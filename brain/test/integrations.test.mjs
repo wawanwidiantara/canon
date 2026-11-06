@@ -31,8 +31,9 @@ function repo({ index = false, mcp = false, tracked = false } = {}) {
 
 function fakeBin(names) {
   const bin = tmp();
-  for (const n of names) fs.writeFileSync(path.join(bin, n), "#!/bin/sh\n", { mode: 0o755 });
-  return { PATH: bin };
+  const win = process.platform === "win32";
+  for (const n of names) fs.writeFileSync(path.join(bin, win ? `${n}.cmd` : n), win ? "@echo off\r\n" : "#!/bin/sh\n", { mode: 0o755 });
+  return { PATH: bin, Path: bin, PATHEXT: ".CMD;.EXE" };
 }
 const home = (data) => {
   const h = tmp();

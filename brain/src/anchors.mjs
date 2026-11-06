@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { toPosix } from "./platform.mjs";
 
 export function hashFile(file) {
   return crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex").slice(0, 12);
@@ -35,7 +36,8 @@ export function checkAnchors(repo, anchors) {
 }
 
 export function anchorFor(repo, relPath) {
-  const abs = path.join(repo, relPath);
+  const rel = toPosix(relPath).replace(/^\.\//, "");
+  const abs = path.join(repo, rel);
   if (!fs.existsSync(abs)) throw new Error(`anchor file not found: ${abs}`);
-  return `${relPath}@${hashFile(abs)}`;
+  return `${rel}@${hashFile(abs)}`;
 }

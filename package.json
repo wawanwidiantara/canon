@@ -5,8 +5,8 @@
   "type": "module",
   "description": "Personal agentic software factory: brain CLI, skills, hooks.",
   "bin": { "brain": "brain/bin/brain.mjs" },
-  "engines": { "node": ">=22.5" },
+  "engines": { "node": ">=22.13" },
   "scripts": {
-    "test": "node --test brain/test/brain.test.mjs brain/test/hooks.test.mjs brain/test/mutation.test.mjs brain/test/digest.test.mjs brain/test/index.test.mjs brain/test/check.test.mjs brain/test/integrations.test.mjs brain/test/lifecycle.test.mjs"
+    "test": "node --test brain/test/brain.test.mjs brain/test/hooks.test.mjs brain/test/mutation.test.mjs brain/test/digest.test.mjs brain/test/index.test.mjs brain/test/check.test.mjs brain/test/integrations.test.mjs brain/test/lifecycle.test.mjs brain/test/platform.test.mjs"
   }
 }

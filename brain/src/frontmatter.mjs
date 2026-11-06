@@ -2,6 +2,7 @@
 const RE = /^---\n([\s\S]*?)\n---\n?/;
 
 export function parse(text) {
+  text = text.replace(/\r\n?/g, "\n");
   const m = RE.exec(text);
   if (!m) return null;
   const data = {};

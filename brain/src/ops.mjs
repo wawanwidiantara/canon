@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { stringify } from "./frontmatter.mjs";
+import { isReservedName } from "./platform.mjs";
 import { SLUG_RE, TYPES } from "./schema.mjs";
 import { getSection, isBlank, parseBehaviors, stripComments, updateBehavior } from "./markdown.mjs";
 import { validate } from "./validate.mjs";
@@ -42,6 +43,7 @@ export function newDoc(vault, { type, project, slug, title, depends = [], stack 
   if (!def) throw new Error(`unknown type '${type}'`);
   if (!SLUG_RE.test(slug)) throw new Error(`slug must be kebab-case, got '${slug}'`);
   if (!SLUG_RE.test(project)) throw new Error(`project must be kebab-case, got '${project}'`);
+  if (project === "global" && isReservedName(slug)) throw new Error(`'${slug}' is a reserved file name on Windows`);
   if (type === "global-rule" && project !== "global") throw new Error("global-rule uses project 'global'");
   if (type !== "global-rule" && project === "global") throw new Error("only global-rule uses project 'global'");
 

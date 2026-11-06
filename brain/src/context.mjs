@@ -8,15 +8,19 @@ import { parseBehaviors } from "./markdown.mjs";
 import { validate } from "./validate.mjs";
 import { listDocs, loadConfig } from "./vault.mjs";
 import { checkAnchors, repoFor } from "./anchors.mjs";
+import { configDir, isWithin } from "./platform.mjs";
 import { inspect as cgInspect } from "./codegraph.mjs";
 import { formatResults, planChecks, runChecks } from "./check.mjs";
 import { changedFiles } from "./mutation.mjs";
 
-// Vault location: $BRAIN_VAULT, else the path in ~/.config/brain/vault.
+// Vault location: $BRAIN_VAULT, else the path stored in <config dir>/vault
+// (~/.config/brain on Linux and macOS, %APPDATA%\brain on Windows).
 export function resolveVault() {
   if (process.env.BRAIN_VAULT) return path.resolve(process.env.BRAIN_VAULT);
-  const f = path.join(os.homedir(), ".config", "brain", "vault");
-  if (fs.existsSync(f)) return fs.readFileSync(f, "utf8").trim();
+  for (const dir of [configDir(process.env, process.platform, os.homedir()), path.join(os.homedir(), ".config", "brain")]) {
+    const f = path.join(dir, "vault");
+    if (fs.existsSync(f)) return fs.readFileSync(f, "utf8").trim();
+  }
   return null;
 }
 
@@ -25,7 +29,7 @@ export function projectForCwd(config, cwd) {
   let best = null;
   for (const [slug, p] of Object.entries(config.projects ?? {})) {
     const repo = path.resolve(p.repo);
-    if ((cwd === repo || cwd.startsWith(repo + path.sep)) && (!best || repo.length > best.len)) {
+    if (isWithin(repo, cwd) && (!best || repo.length > best.len)) {
       best = { slug, len: repo.length };
     }
   }

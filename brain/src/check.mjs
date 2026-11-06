@@ -8,7 +8,7 @@
 //                    "commands": [{ "name": "x", "cmd": "mytool", "args": ["{files}"], "scope": "files" }] }
 // Output is capped: a passing tool prints one line, a failing one its tail.
 // `verified: false` means flags are from memory; retry with the tool's --help.
-import { spawnSync } from "node:child_process";
+import { spawnPortable } from "./platform.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import { changedFiles, isTest } from "./mutation.mjs";
@@ -157,7 +157,7 @@ const tail = (s, n) => {
 
 export function runChecks(repo, plans, { maxLines = 25 } = {}) {
   return plans.map((p) => {
-    const r = spawnSync(p.args[0], p.args.slice(1), { cwd: repo, encoding: "utf8", maxBuffer: 64 * 1024 * 1024, timeout: 300000 });
+    const r = spawnPortable(p.args[0], p.args.slice(1), { cwd: repo, encoding: "utf8", maxBuffer: 64 * 1024 * 1024, timeout: 300000 });
     let raw = `${r.stdout ?? ""}\n${r.stderr ?? ""}`;
     if (r.error) return { id: p.id, ok: false, note: `could not run ${p.args[0]}: ${r.error.message}`, output: "", verified: p.verified };
     if (p.filter === "clones") {

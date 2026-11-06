@@ -46,7 +46,7 @@ export function projectFromPath(vault, file) {
 // Every markdown node in the vault with its parsed frontmatter.
 export function listDocs(vault) {
   return walk(vault, []).map((file) => {
-    const text = fs.readFileSync(file, "utf8");
+    const text = fs.readFileSync(file, "utf8").replace(/\r\n?/g, "\n");
     const parsed = parse(text);
     return {
       file,

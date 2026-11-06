@@ -20,8 +20,10 @@ Works with any stack: docs, hooks and the CLI are language-neutral. Mutation tes
 
 Status: brain core and hooks work and are unit-tested (22 tests). Hooks were verified end to end in a headless Claude Code run (session start brief, stop gate with one block then release, session digest). Index/query, retro digest and more curated skills are next.
 
+Works on Linux, macOS and Windows (Node 22.13+). Windows notes: the `Bash` tool needs Git for Windows, or use `brain.cmd` from PowerShell/cmd; the vault path file lives in `%APPDATA%\brain\vault`. CI runs the tests on all three systems; I could only run them on Linux myself.
+
 Setup:
-1. `claude --plugin-dir .` (or install the plugin) and put the vault path in `BRAIN_VAULT` or `~/.config/brain/vault`.
+1. `claude --plugin-dir .` (or install the plugin) and put the vault path in `BRAIN_VAULT` or the file `vault` in `~/.config/brain/` (`%APPDATA%\brain\` on Windows).
 2. Map each repo: `brain map <project> <repo-path>` inside the vault.
 3. Allow the CLI so the agent can run it without prompts: add `Bash(brain:*)` to `permissions.allow` in your Claude Code settings. Plugins cannot ship permission rules.
 

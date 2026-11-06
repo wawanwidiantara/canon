@@ -11,7 +11,8 @@
 // single comma-joined argument. `verified: false` entries were not checked
 // against the tool's docs when written; a failed run should be retried with
 // the tool's --help.
-import { execFileSync, spawnSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
+import { spawnPortable } from "./platform.mjs";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -219,7 +220,7 @@ export function filterSurvivors(text, max = 40) {
 }
 
 function exec(repo, args) {
-  const r = spawnSync(args[0], args.slice(1), { cwd: repo, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+  const r = spawnPortable(args[0], args.slice(1), { cwd: repo, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
   return { raw: `${r.stdout ?? ""}\n${r.stderr ?? ""}`, status: r.status, error: r.error };
 }
 

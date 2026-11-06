@@ -1,6 +1,7 @@
 // Detects how codegraph is set up for a repo and plans only the missing pieces.
 // It never edits files git tracks (.mcp.json, .claude/settings.json, CLAUDE.md).
-import { execFileSync, spawnSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
+import { findOnPath, spawnPortable } from "./platform.mjs";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -22,11 +23,7 @@ const git = (repo, args) => {
 };
 
 export function cliPath(env = process.env) {
-  for (const dir of (env.PATH ?? "").split(path.delimiter)) {
-    const f = path.join(dir, "codegraph");
-    if (dir && fs.existsSync(f)) return f;
-  }
-  return null;
+  return findOnPath("codegraph", { env });
 }
 
 // Every place the codegraph MCP server is registered for this repo.
@@ -34,7 +31,8 @@ export function wiring(repo, home = os.homedir()) {
   const found = [];
   if (readJson(path.join(repo, ".mcp.json"))?.mcpServers?.codegraph) found.push("repo .mcp.json");
   const user = readJson(path.join(home, ".claude.json"));
-  if (user?.projects?.[repo]?.mcpServers?.codegraph) found.push("user config, this project only");
+  const keys = [repo, repo.split("\\").join("/")];
+  if (keys.some((k) => user?.projects?.[k]?.mcpServers?.codegraph)) found.push("user config, this project only");
   if (user?.mcpServers?.codegraph) found.push("user config, all projects");
   return found;
 }
@@ -102,7 +100,7 @@ export function apply(s, actions, { run = defaultRun } = {}) {
 }
 
 function defaultRun(cmd, cwd) {
-  return spawnSync(cmd[0], cmd.slice(1), { cwd, encoding: "utf8", timeout: 600000 });
+  return spawnPortable(cmd[0], cmd.slice(1), { cwd, encoding: "utf8", timeout: 600000 });
 }
 
 export function describe(s) {
