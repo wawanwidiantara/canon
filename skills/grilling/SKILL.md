@@ -3,6 +3,8 @@ name: grilling
 description: Grill the user relentlessly about a plan, decision, or idea, then record the decisions in the project brain. Use before writing a spec, when stress-testing a design, or on any 'grill' trigger phrase.
 ---
 
+<!-- Adapted from mattpocock/skills `grilling` (MIT, Matt Pocock). -->
+
 Interview the user until you reach a shared understanding. Map the plan as a **design tree**: every decision branches into the decisions that hang off it.
 
 Work the tree in **rounds**. The **frontier** is every decision whose prerequisites are already settled. Ask the frontier in one round, at most 5 questions. If more are ready, keep the rest for the next round. Number each question and give your recommended answer. Word each question so "yes" accepts your recommendation.

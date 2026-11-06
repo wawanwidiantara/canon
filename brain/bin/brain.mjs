@@ -4,6 +4,7 @@ import { validate } from "../src/validate.mjs";
 import { findVault, listDocs, loadConfig } from "../src/vault.mjs";
 import { projectForCwd, writeSkip } from "../src/context.mjs";
 import { repoFor } from "../src/anchors.mjs";
+import { changedFiles, commandFor, detectStack, filterSurvivors, runMutation } from "../src/mutation.mjs";
 import { parseBehaviors } from "../src/markdown.mjs";
 
 const USAGE = `brain <command>
@@ -16,6 +17,7 @@ const USAGE = `brain <command>
   stale [--mark]                           list specs whose code changed; --mark sets needs-review
   verify <spec-id>                         confirm spec matches code, re-hash anchors
   status [project]                         behavior progress per spec
+  mutate [--base B] [--run]                mutation tool for this repo scoped to changed files; --run executes, prints survivors only
   skip-docs                                current code changes need no doc (run inside the repo)
 Vault: nearest brain.config.json above cwd, or $BRAIN_VAULT.`;
 
@@ -38,7 +40,7 @@ function flags(args) {
 
 const list = (s) => (s ? String(s).split(",").filter(Boolean) : []);
 
-function main(argv) {
+async function main(argv) {
   const [cmd, ...rest] = argv;
   const { pos, f } = flags(rest);
   switch (cmd) {
@@ -78,6 +80,25 @@ function main(argv) {
     case "verify":
       verifySpec(findVault(), pos[0]);
       return console.log(`verified ${pos[0]}`);
+    case "mutate": {
+      const repo = process.cwd();
+      const base = typeof f.base === "string" ? f.base : undefined;
+      if (f.run) {
+        const r = runMutation(repo, { base });
+        console.log(`tool: ${r.stack}; changed: ${r.files.length} file(s)`);
+        return console.log(r.plan ? r.output : "nothing mutable changed");
+      }
+      const stack = detectStack(repo);
+      const plan = stack && commandFor(stack, changedFiles(repo, base), { base: base ?? "main" });
+      if (!plan) return console.log(stack ? `tool: ${stack}; nothing mutable changed` : "no mutation tool detected");
+      console.log([plan.cmd, ...plan.args].join(" "));
+      for (const n of plan.notes) console.log(`note: ${n}`);
+      return;
+    }
+    case "survivors": {
+      const input = (await import("node:fs")).readFileSync(0, "utf8");
+      return console.log(filterSurvivors(input));
+    }
     case "skip-docs": {
       const vault = findVault();
       const config = loadConfig(vault);
@@ -102,7 +123,7 @@ function main(argv) {
 }
 
 try {
-  main(process.argv.slice(2));
+  await main(process.argv.slice(2));
 } catch (e) {
   console.error(`brain: ${e.message}`);
   process.exit(1);
