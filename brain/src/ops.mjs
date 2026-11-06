@@ -2,7 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { stringify } from "./frontmatter.mjs";
 import { SLUG_RE, TYPES } from "./schema.mjs";
-import { parseBehaviors, updateBehavior } from "./markdown.mjs";
+import { getSection, isBlank, parseBehaviors, stripComments, updateBehavior } from "./markdown.mjs";
+import { validate } from "./validate.mjs";
 import { anchorFor, checkAnchors, repoFor } from "./anchors.mjs";
 import { findDoc, listDocs, loadConfig, saveConfig } from "./vault.mjs";
 
@@ -147,3 +148,90 @@ export function verifySpec(vault, specId) {
   write(doc, { ...doc.data, anchors, status }, doc.body);
 }
 
+
+// ---- lifecycle -------------------------------------------------------------
+
+
+const REF_RE = /^- \[\[([^\]#]+)#(B\d+)\]\]\s*$/;
+
+const relOf = (vault, doc) => path.relative(vault, doc.file);
+const findingsFor = (vault, doc) => validate(vault).filter((f) => f.startsWith(`${relOf(vault, doc)}:`));
+
+// draft -> active. The doc must pass validation as an active doc, otherwise it
+// is left as a draft.
+export function approve(vault, id) {
+  const doc = mustDoc(vault, id);
+  if (doc.data.status !== "draft") throw new Error(`${id} is ${doc.data.status}, only drafts can be approved`);
+  write(doc, { ...doc.data, status: "active" }, doc.body);
+  const problems = findingsFor(vault, doc);
+  if (problems.length) {
+    write(doc, doc.data, doc.body); // revert to draft
+    throw new Error(`${id} is not ready:\n${problems.map((p) => `- ${p}`).join("\n")}`);
+  }
+}
+
+function specProblems(vault, specId) {
+  const doc = mustDoc(vault, specId);
+  const open = parseBehaviors(doc.body).items.filter((b) => b.state !== "done");
+  const out = open.map((b) => `${specId} ${b.id} is ${b.state}: ${b.text}`);
+  for (const s of findStale(vault)) if (s.id === specId) out.push(`${specId} is stale (${s.problems.map((p) => `${p.kind} ${p.anchor}`).join(", ")}); update it, then \`brain verify ${specId}\``);
+  if (doc.data.status === "needs-review") out.push(`${specId} needs review; update it, then \`brain verify ${specId}\``);
+  return out;
+}
+
+// active -> completed, only when the work is really done.
+//  phase: every behavior it lists is done and its specs are not stale
+//  spec:  every behavior is done and the spec is not stale
+//  other: just needs to validate
+export function complete(vault, id) {
+  const doc = mustDoc(vault, id);
+  if (!["active", "needs-review"].includes(doc.data.status)) throw new Error(`${id} is ${doc.data.status}; only active docs can be completed`);
+  const problems = [];
+  if (doc.data.type === "phase") {
+    const sec = getSection(doc.body, "Behaviors");
+    const specs = new Set();
+    const wanted = [];
+    for (const line of stripComments(sec ?? "").split("\n")) {
+      const m = REF_RE.exec(line.trim());
+      if (m) (specs.add(m[1]), wanted.push([m[1], m[2]]));
+    }
+    if (!wanted.length) problems.push(`${id} lists no behaviors`);
+    for (const [specId, bid] of wanted) {
+      const spec = findDoc(vault, specId);
+      const b = spec && parseBehaviors(spec.body).items.find((x) => x.id === bid);
+      if (!b) problems.push(`${specId}#${bid} does not exist`);
+      else if (b.state !== "done") problems.push(`${specId} ${bid} is ${b.state}: ${b.text}`);
+    }
+    const stale = findStale(vault);
+    for (const s of specs) {
+      const st = stale.find((x) => x.id === s);
+      if (st) problems.push(`${s} is stale (${st.problems.map((p) => `${p.kind} ${p.anchor}`).join(", ")}); update it, then \`brain verify ${s}\``);
+      const sd = findDoc(vault, s);
+      if (sd?.data?.status === "needs-review") problems.push(`${s} needs review; update it, then \`brain verify ${s}\``);
+    }
+  } else if (doc.data.type === "spec") {
+    problems.push(...specProblems(vault, id));
+  }
+  problems.push(...findingsFor(vault, doc));
+  if (problems.length) throw new Error(`cannot complete ${id}:\n${problems.map((p) => `- ${p}`).join("\n")}`);
+  write(doc, { ...doc.data, status: "completed" }, doc.body);
+}
+
+// Replace a doc with another instead of deleting or archiving it.
+export function supersede(vault, oldId, newId) {
+  if (oldId === newId) throw new Error("a doc cannot supersede itself");
+  const oldDoc = mustDoc(vault, oldId);
+  const newDoc_ = mustDoc(vault, newId);
+  if (oldDoc.data.project !== newDoc_.data.project) throw new Error("both docs must belong to the same project");
+  if (oldDoc.data.status === "superseded") throw new Error(`${oldId} is already superseded`);
+  if (newDoc_.data.status === "superseded") throw new Error(`${newId} is itself superseded`);
+  write(oldDoc, { ...oldDoc.data, status: "superseded", superseded_by: newId }, oldDoc.body);
+}
+
+// Mark a lesson as enforced once a check exists that prevents the mistake.
+export function enforce(vault, lessonId) {
+  const doc = mustDoc(vault, lessonId);
+  if (doc.data.type !== "lesson") throw new Error(`${lessonId} is not a lesson`);
+  if (isBlank(getSection(doc.body, "Prevention") ?? "")) throw new Error("fill the Prevention section with the check that now exists before enforcing");
+  write(doc, { ...doc.data, enforced: "true" }, doc.body);
+}

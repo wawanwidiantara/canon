@@ -20,7 +20,7 @@ Docs live in the central vault, not in the app repo. The session-start message n
 - Specs and their sections `Goal`, `Implementation Decisions`, `Testing Decisions`, `Non-goals` are prose. No file paths and no code. Put governed files in anchors: `brain anchor <spec-id> <path...>`.
 - Behaviors are one line each: `- [ ] B1: statement`. Mark progress with `brain task <spec-id> B1 doing|done --test path::name`. A behavior is done only when its test passes.
 - Phases list spec behaviors as `- [[spec-id#B1]]`. Do not copy behavior text.
-- A doc is `draft` until the user approves it, then `active`.
+- A doc is `draft` until the user approves it, then `brain approve <id>` makes it `active`. Finish work with `brain complete <id>`. Replace a doc with `brain supersede <old> <new>`.
 
 ## When code changes
 

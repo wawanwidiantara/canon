@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { approve, complete, enforce, supersede } from "../src/ops.mjs";
 import { addAnchors, findStale, init, mapProject, markStale, newDoc, setTask, verifySpec } from "../src/ops.mjs";
 import { validate } from "../src/validate.mjs";
 import { findVault, listDocs, loadConfig } from "../src/vault.mjs";
@@ -32,6 +33,10 @@ const USAGE = `brain <command>
   show <id> [--section S]                  print a doc or a single section
   check [--run] [--fast] [--base B]        quality checks on changed files (lint, types, dead code, duplication, security); --run executes, capped output
   codegraph [project] [--setup [--yes]]    show how codegraph is set up for mapped repos; --setup plans (and with --yes applies) only the missing pieces
+  approve <id>                             draft -> active, only if the doc validates as active
+  complete <id>                            active -> completed; a phase or spec needs every behavior done and no stale code
+  supersede <old-id> <new-id>              replace a doc (kept for history, hidden from search)
+  enforce <lesson-id>                      mark a lesson enforced once a check prevents the mistake
   skip-docs                                current code changes need no doc (run inside the repo)
 Vault: nearest brain.config.json above cwd, or $BRAIN_VAULT.`;
 
@@ -207,6 +212,18 @@ async function main(argv) {
       const input = (await import("node:fs")).readFileSync(0, "utf8");
       return console.log(filterSurvivors(input));
     }
+    case "approve":
+      approve(findVault(), pos[0]);
+      return console.log(`${pos[0]} is now active`);
+    case "complete":
+      complete(findVault(), pos[0]);
+      return console.log(`${pos[0]} is now completed`);
+    case "supersede":
+      supersede(findVault(), pos[0], pos[1]);
+      return console.log(`${pos[0]} superseded by ${pos[1]}`);
+    case "enforce":
+      enforce(findVault(), pos[0]);
+      return console.log(`${pos[0]} marked enforced`);
     case "skip-docs": {
       const vault = findVault();
       const config = loadConfig(vault);

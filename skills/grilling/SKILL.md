@@ -50,5 +50,6 @@ After confirmation:
 
 1. Small or reversible decisions go in the spec's Implementation Decisions or Testing Decisions, in prose, with no file paths or code.
 2. Costly or hard-to-reverse decisions, and any that rejected a serious alternative, get an ADR: `brain new adr <project> <slug>`. Rejected options and the reason go under Consequences.
-3. No spec yet: `brain new spec <project> <slug>`, status `draft` until approved.
-4. Mark the grill log `completed`, run `brain validate`, and report what was written.
+3. No spec yet: `brain new spec <project> <slug>`; it stays `draft` until the user approves it (`brain approve <id>`).
+4. Close the grill log: `brain approve <grill-log-id>`, then `brain complete <grill-log-id>`. New ADRs stay `draft` until the user approves them with `brain approve`.
+5. Run `brain validate` and report what was written.
