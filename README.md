@@ -14,7 +14,14 @@ node brain/bin/brain.mjs          # usage
 
 Works with any stack: docs, hooks and the CLI are language-neutral. Mutation testing has built-in support for PHP (Pest, Infection), TypeScript/JavaScript/Vue (StrykerJS), Dart/Flutter, Rust, Python, Java/Kotlin, C# and Go, and a per-project override for anything else.
 
-Status: brain core and hooks work and are unit-tested (22 tests). The hooks have not been run inside a live Claude Code session yet. Index/query, retro digest and more curated skills are next.
+Status: brain core and hooks work and are unit-tested (22 tests). Hooks were verified end to end in a headless Claude Code run (session start brief, stop gate with one block then release, session digest). Index/query, retro digest and more curated skills are next.
+
+Setup:
+1. `claude --plugin-dir .` (or install the plugin) and put the vault path in `BRAIN_VAULT` or `~/.config/brain/vault`.
+2. Map each repo: `brain map <project> <repo-path>` inside the vault.
+3. Allow the CLI so the agent can run it without prompts: add `Bash(brain:*)` to `permissions.allow` in your Claude Code settings. Plugins cannot ship permission rules.
+
+The plugin puts `brain` on the Bash PATH. Hooks only act in repos mapped in the vault.
 
 Try it: `claude --plugin-dir .`, and set `BRAIN_VAULT` (or write the vault path to `~/.config/brain/vault`).
 
