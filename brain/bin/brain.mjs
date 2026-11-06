@@ -5,6 +5,7 @@ import { findVault, listDocs, loadConfig } from "../src/vault.mjs";
 import { projectForCwd, writeSkip } from "../src/context.mjs";
 import { repoFor } from "../src/anchors.mjs";
 import { buildDigest, loadDigests, lastRetro, markRetroDone, retroReport, saveDigest } from "../src/digest.mjs";
+import { apply as cgApply, describe as cgDescribe, inspect as cgInspect, plan as cgPlan } from "../src/codegraph.mjs";
 import { checkFiles, formatResults, planChecks, runChecks } from "../src/check.mjs";
 import { changedFiles, detectTools, filterSurvivors, plansFor, runMutation } from "../src/mutation.mjs";
 import { parseBehaviors } from "../src/markdown.mjs";
@@ -30,6 +31,7 @@ const USAGE = `brain <command>
   query --active <project> [--type T]      one line per active doc
   show <id> [--section S]                  print a doc or a single section
   check [--run] [--fast] [--base B]        quality checks on changed files (lint, types, dead code, duplication, security); --run executes, capped output
+  codegraph [project] [--setup [--yes]]    show how codegraph is set up for mapped repos; --setup plans (and with --yes applies) only the missing pieces
   skip-docs                                current code changes need no doc (run inside the repo)
 Vault: nearest brain.config.json above cwd, or $BRAIN_VAULT.`;
 
@@ -178,6 +180,27 @@ async function main(argv) {
       const results = runChecks(repo, plans);
       console.log(formatResults(results));
       if (results.some((r) => !r.ok)) process.exit(1);
+      return;
+    }
+    case "codegraph": {
+      const vault = findVault();
+      const config = loadConfig(vault);
+      const slugs = pos[0] ? [pos[0]] : Object.keys(config.projects ?? {});
+      if (!slugs.length) throw new Error("no mapped projects");
+      for (const slug of slugs) {
+        const repo = repoFor(config, slug);
+        if (!repo) throw new Error(`project '${slug}' has no repo mapped`);
+        const s = cgInspect(repo);
+        console.log(`# ${slug}\n${cgDescribe(s)}`);
+        if (!f.setup) continue;
+        const actions = cgPlan(s);
+        if (!actions.length) {
+          console.log("  nothing to do");
+          continue;
+        }
+        for (const a of actions) console.log(`  ${f.yes ? "doing" : "would"}: ${a.what}${a.cmd ? ` -> ${a.cmd.join(" ")}` : ""}${a.manual ? ` -> ${a.manual}` : ""}`);
+        if (f.yes) for (const line of cgApply(s, actions)) console.log(`  ${line}`);
+      }
       return;
     }
     case "survivors": {

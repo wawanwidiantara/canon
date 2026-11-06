@@ -8,6 +8,7 @@ import { parseBehaviors } from "./markdown.mjs";
 import { validate } from "./validate.mjs";
 import { listDocs, loadConfig } from "./vault.mjs";
 import { checkAnchors, repoFor } from "./anchors.mjs";
+import { inspect as cgInspect } from "./codegraph.mjs";
 import { formatResults, planChecks, runChecks } from "./check.mjs";
 import { changedFiles } from "./mutation.mjs";
 
@@ -75,6 +76,12 @@ export function sessionBrief(vault, project) {
     `Project brain: project "${project}", vault ${vault}.`,
     `Find existing docs with \`brain query <words>\` and read one section with \`brain show <id> --section <Name>\` instead of opening whole files. Create docs only with \`brain new <type> ${project} <slug>\`, then fill the sections. Never hand-write frontmatter. Track behaviors with \`brain task\`, record code a spec governs with \`brain anchor\`, check with \`brain validate\` and \`brain stale\`.`,
   ];
+  const repo = repoFor(loadConfig(vault), project);
+  if (repo) {
+    const cg = cgInspect(repo);
+    if (cg.index && cg.wired.length) lines.push("Code graph is available: for \"how does X work\" or \"where is X used\" questions, call `codegraph_explore` before grepping.");
+    if (loadConfig(vault).projects?.[project]?.quicksilver === true) lines.push("Quicksilver (`qs`) is allowed in this project for bulk fuzzy triage; do not use it for decisions.");
+  }
   if (work.length) {
     lines.push("Open specs:");
     for (const w of work) {

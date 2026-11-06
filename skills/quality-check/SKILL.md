@@ -24,6 +24,10 @@ If nothing is configured for this stack, say so and suggest the one or two tools
 
 Set `"onStop": true` to run the fast checks automatically when a turn ends and block on failures.
 
+## Fuzzy sweep (only when allowed)
+
+Some questions a tool cannot express: "which of these files carry AI-style filler comments", "which look like copies of each other but differ in names". If the session brief says Quicksilver (`qs`) is allowed for this project, ask it one narrow yes/no question over the changed files, then read only the files it flags. If it is not allowed, a hook will block `qs`; do not try to work around it. Never use it to decide anything: it only shortlists.
+
 ## Fix
 
 1. Fix real findings in the code. Do not silence a rule or add an ignore comment to make a check pass, unless the finding is wrong, and then say why.

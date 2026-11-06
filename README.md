@@ -6,6 +6,8 @@ Personal agentic software-development setup for Claude Code on a small budget.
 - `skills/` — curated skills the plugin loads (`grilling`, `brain-docs`).
 - `brain query` / `brain show` — full-text search (SQLite FTS5, built into Node), a link graph and "which spec governs this file" over the vault, rebuilt automatically when docs change.
 - `brain check` — quality gate on changed files without Sonar: uses the repo's own lint/type scripts first, then PHPStan/Larastan, Pint, Rector, tsc, ESLint, knip, dart/flutter analyze, go vet, clippy, ruff, jscpd and OpenGrep when installed; per-project overrides for any other stack. Output is capped; optional fast run when a turn ends.
+- `brain codegraph` — shows how [codegraph](https://github.com/colbymchenry/codegraph) is set up for each mapped repo and plans only what is missing (index, per-project MCP registration, local git exclude). It never edits files git tracks, and it skips registration when the server is already wired in the repo's `.mcp.json` or your user config.
+- Quicksilver privacy gate — a `PreToolUse` hook blocks `qs` (which sends file content to a third-party API) in mapped projects unless `projects.<slug>.quicksilver` is `true` in `brain.config.json`.
 - `hooks/` — Claude Code hooks: `SessionStart` brief, `PreCompact` notes, `Stop` gate (validate, stale, docs-with-code). Silent in repos not mapped in the vault.
 - `docs/schema.md` — the vault schema.
 
