@@ -4,7 +4,7 @@ import { validate } from "../src/validate.mjs";
 import { findVault, listDocs, loadConfig } from "../src/vault.mjs";
 import { projectForCwd, writeSkip } from "../src/context.mjs";
 import { repoFor } from "../src/anchors.mjs";
-import { changedFiles, commandFor, detectStack, filterSurvivors, runMutation } from "../src/mutation.mjs";
+import { changedFiles, detectTools, filterSurvivors, plansFor, runMutation } from "../src/mutation.mjs";
 import { parseBehaviors } from "../src/markdown.mjs";
 
 const USAGE = `brain <command>
@@ -20,6 +20,9 @@ const USAGE = `brain <command>
   mutate [--base B] [--run]                mutation tool for this repo scoped to changed files; --run executes, prints survivors only
   skip-docs                                current code changes need no doc (run inside the repo)
 Vault: nearest brain.config.json above cwd, or $BRAIN_VAULT.`;
+
+const NO_TOOL =
+  "no mutation tool detected. Built in: Pest, Infection, StrykerJS, dart_mutant, cargo-mutants, mutmut, PIT, Stryker.NET, go-mutesting. Any other stack: set projects.<slug>.mutation = {cmd, args} in brain.config.json ({files} expands to changed files).";
 
 function flags(args) {
   const pos = [];
@@ -83,16 +86,30 @@ async function main(argv) {
     case "mutate": {
       const repo = process.cwd();
       const base = typeof f.base === "string" ? f.base : undefined;
-      if (f.run) {
-        const r = runMutation(repo, { base });
-        console.log(`tool: ${r.stack}; changed: ${r.files.length} file(s)`);
-        return console.log(r.plan ? r.output : "nothing mutable changed");
+      let override = null;
+      try {
+        const vault = findVault();
+        const config = loadConfig(vault);
+        override = config.projects?.[projectForCwd(config, repo)]?.mutation ?? null;
+      } catch {
+        // no vault: built-in detection only
       }
-      const stack = detectStack(repo);
-      const plan = stack && commandFor(stack, changedFiles(repo, base), { base: base ?? "main" });
-      if (!plan) return console.log(stack ? `tool: ${stack}; nothing mutable changed` : "no mutation tool detected");
-      console.log([plan.cmd, ...plan.args].join(" "));
-      for (const n of plan.notes) console.log(`note: ${n}`);
+      if (f.run) {
+        const r = runMutation(repo, { base, override });
+        if (!r.results.length) return console.log(detectTools(repo).length || override ? "nothing mutable changed" : NO_TOOL);
+        for (const x of r.results) {
+          console.log(`tool: ${x.id}${x.verified ? "" : " (flags unverified)"}; changed: ${r.files.length} file(s)`);
+          console.log(x.output);
+        }
+        return;
+      }
+      const plans = plansFor(repo, changedFiles(repo, base), { base, override });
+      if (!plans.length) return console.log(detectTools(repo).length || override ? "nothing mutable changed" : NO_TOOL);
+      for (const p of plans) {
+        console.log(`# ${p.label ?? p.id}${p.verified ? "" : " (flags unverified)"}`);
+        console.log(p.args.join(" "));
+        for (const n of p.notes) console.log(`note: ${n}`);
+      }
       return;
     }
     case "survivors": {

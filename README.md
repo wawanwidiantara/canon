@@ -12,6 +12,8 @@ npm test
 node brain/bin/brain.mjs          # usage
 ```
 
+Works with any stack: docs, hooks and the CLI are language-neutral. Mutation testing has built-in support for PHP (Pest, Infection), TypeScript/JavaScript/Vue (StrykerJS), Dart/Flutter, Rust, Python, Java/Kotlin, C# and Go, and a per-project override for anything else.
+
 Status: brain core and hooks work and are unit-tested (22 tests). The hooks have not been run inside a live Claude Code session yet. Index/query, retro digest and more curated skills are next.
 
 Try it: `claude --plugin-dir .`, and set `BRAIN_VAULT` (or write the vault path to `~/.config/brain/vault`).
