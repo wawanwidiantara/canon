@@ -5,6 +5,14 @@ description: How to create and update docs in the project brain (specs, phases, 
 
 Docs live in the central vault, not in the app repo. The session-start message names the project and vault when this repo is mapped.
 
+## Find before you read
+
+- `brain query <words>` searches all docs and returns ranked one-line hits with a snippet. Use it before opening files or searching the vault with grep.
+- `brain query --governs <path>` lists specs that govern a code file. Run it before changing that file.
+- `brain query --deps <id>` and `--dependents <id>` walk the links between docs.
+- `brain query --open` lists unfinished behaviors. `brain query --active <project>` lists current docs.
+- `brain show <id> --section <Name>` prints one section. Read a section, not the whole file, when that is enough.
+
 ## Rules
 
 - Create docs only with `brain new <type> <project> <slug>`. It sets the id, filename, frontmatter and section headings. Never hand-write frontmatter or rename files.

@@ -21,6 +21,13 @@ const USAGE = `brain <command>
   mutate [--base B] [--run]                mutation tool for this repo scoped to changed files; --run executes, prints survivors only
   digest <transcript.jsonl> [--project P]  summarize a session (saved to the vault if --project given)
   retro [project] [--done]                 report on session digests since the last retro; --done marks it reviewed
+  index                                    rebuild the search index (queries do this automatically when docs change)
+  query <text> [--project P] [--type T] [--status S] [--limit N]   full-text search
+  query --governs <path>                   specs that govern a code path
+  query --deps <id> | --dependents <id>    what a doc builds on / what builds on it
+  query --open [--project P]               unfinished behaviors
+  query --active <project> [--type T]      one line per active doc
+  show <id> [--section S]                  print a doc or a single section
   skip-docs                                current code changes need no doc (run inside the repo)
 Vault: nearest brain.config.json above cwd, or $BRAIN_VAULT.`;
 
@@ -114,6 +121,24 @@ async function main(argv) {
         for (const n of p.notes) console.log(`note: ${n}`);
       }
       return;
+    }
+    case "index":
+    case "query":
+    case "show": {
+      process.removeAllListeners("warning"); // node:sqlite prints an experimental notice
+      const ix = await import("../src/index.mjs");
+      const vault = findVault();
+      const out = (lines) => console.log(lines.length ? lines.join("\n") : "no results");
+      if (cmd === "index") return console.log(`indexed ${ix.buildIndex(vault)} docs`);
+      if (cmd === "show") return console.log(ix.show(vault, pos[0], typeof f.section === "string" ? f.section : undefined));
+      const project = typeof f.project === "string" ? f.project : undefined;
+      if (typeof f.governs === "string") return out(ix.governs(vault, f.governs));
+      if (typeof f.deps === "string") return out(ix.dependencies(vault, f.deps));
+      if (typeof f.dependents === "string") return out(ix.dependents(vault, f.dependents));
+      if (f.open) return out(ix.openBehaviors(vault, project));
+      if (typeof f.active === "string") return out(ix.listActive(vault, f.active, typeof f.type === "string" ? f.type : undefined));
+      if (!pos.length) throw new Error("query needs text or one of --governs --deps --dependents --open --active");
+      return out(ix.search(vault, pos.join(" "), { project, type: typeof f.type === "string" ? f.type : undefined, status: typeof f.status === "string" ? f.status : undefined, limit: Number(f.limit) || 8 }));
     }
     case "digest": {
       const text = (await import("node:fs")).readFileSync(pos[0], "utf8");

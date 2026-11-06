@@ -4,6 +4,7 @@ Personal agentic software-development setup for Claude Code on a small budget.
 
 - `brain/` — CLI that creates, validates and tracks the central docs vault. Zero dependencies, Node 22.5+.
 - `skills/` — curated skills the plugin loads (`grilling`, `brain-docs`).
+- `brain query` / `brain show` — full-text search (SQLite FTS5, built into Node), a link graph and "which spec governs this file" over the vault, rebuilt automatically when docs change.
 - `hooks/` — Claude Code hooks: `SessionStart` brief, `PreCompact` notes, `Stop` gate (validate, stale, docs-with-code). Silent in repos not mapped in the vault.
 - `docs/schema.md` — the vault schema.
 

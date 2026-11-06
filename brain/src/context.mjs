@@ -71,7 +71,7 @@ export function sessionBrief(vault, project) {
   const stale = staleFor(vault, project);
   const lines = [
     `Project brain: project "${project}", vault ${vault}.`,
-    `Create docs only with \`brain new <type> ${project} <slug>\`, then fill the sections. Never hand-write frontmatter. Track behaviors with \`brain task\`, record code a spec governs with \`brain anchor\`, check with \`brain validate\` and \`brain stale\`.`,
+    `Find existing docs with \`brain query <words>\` and read one section with \`brain show <id> --section <Name>\` instead of opening whole files. Create docs only with \`brain new <type> ${project} <slug>\`, then fill the sections. Never hand-write frontmatter. Track behaviors with \`brain task\`, record code a spec governs with \`brain anchor\`, check with \`brain validate\` and \`brain stale\`.`,
   ];
   if (work.length) {
     lines.push("Open specs:");

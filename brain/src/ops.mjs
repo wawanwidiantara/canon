@@ -22,6 +22,8 @@ function nextNumber(dir, prefix) {
 export function init(vault) {
   fs.mkdirSync(vault, { recursive: true });
   const cfg = path.join(vault, "brain.config.json");
+  const ignore = path.join(vault, ".gitignore");
+  if (!fs.existsSync(ignore)) fs.writeFileSync(ignore, ".brain/\n");
   if (!fs.existsSync(cfg)) fs.writeFileSync(cfg, JSON.stringify({ schema_version: 1, projects: {} }, null, 2) + "\n");
 }
 

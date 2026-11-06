@@ -172,3 +172,8 @@ test("behavior test links may contain paths", () => {
   setTask(vault, id, "B1", "done", "tests/LoginTest.php::logs in");
   assert.deepEqual(validate(vault), []);
 });
+
+test("init writes a .gitignore that hides the generated index", () => {
+  const { vault } = fixture();
+  assert.equal(fs.readFileSync(path.join(vault, ".gitignore"), "utf8"), ".brain/\n");
+});
