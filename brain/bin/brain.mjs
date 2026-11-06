@@ -5,6 +5,7 @@ import { findVault, listDocs, loadConfig } from "../src/vault.mjs";
 import { projectForCwd, writeSkip } from "../src/context.mjs";
 import { repoFor } from "../src/anchors.mjs";
 import { buildDigest, loadDigests, lastRetro, markRetroDone, retroReport, saveDigest } from "../src/digest.mjs";
+import { checkFiles, formatResults, planChecks, runChecks } from "../src/check.mjs";
 import { changedFiles, detectTools, filterSurvivors, plansFor, runMutation } from "../src/mutation.mjs";
 import { parseBehaviors } from "../src/markdown.mjs";
 
@@ -28,6 +29,7 @@ const USAGE = `brain <command>
   query --open [--project P]               unfinished behaviors
   query --active <project> [--type T]      one line per active doc
   show <id> [--section S]                  print a doc or a single section
+  check [--run] [--fast] [--base B]        quality checks on changed files (lint, types, dead code, duplication, security); --run executes, capped output
   skip-docs                                current code changes need no doc (run inside the repo)
 Vault: nearest brain.config.json above cwd, or $BRAIN_VAULT.`;
 
@@ -155,6 +157,28 @@ async function main(argv) {
         return console.log(`retro marked done for ${project}`);
       }
       return console.log(retroReport(loadDigests(vault, project, lastRetro(vault, project))));
+    }
+    case "check": {
+      const repo = process.cwd();
+      const base = typeof f.base === "string" ? f.base : undefined;
+      let override = null;
+      try {
+        const config = loadConfig(findVault());
+        override = config.projects?.[projectForCwd(config, repo)]?.checks ?? null;
+      } catch {
+        // no vault: built-in detection only
+      }
+      const files = checkFiles(repo, base);
+      const plans = planChecks(repo, files, { override, fast: Boolean(f.fast) });
+      if (!plans.length) return console.log(files.length ? "no quality tool applies to the changed files (none configured for this stack)" : "no changed files");
+      if (!f.run) {
+        for (const p of plans) console.log(`# ${p.label}${p.verified ? "" : " (flags unverified)"}\n${p.args.join(" ")}`);
+        return;
+      }
+      const results = runChecks(repo, plans);
+      console.log(formatResults(results));
+      if (results.some((r) => !r.ok)) process.exit(1);
+      return;
     }
     case "survivors": {
       const input = (await import("node:fs")).readFileSync(0, "utf8");

@@ -119,3 +119,20 @@ test("sessionBrief reports stale anchors", () => {
   assert.match(sessionBrief(vault, "demo"), /Stale: demo-spec-001-login \(changed src\/a\.php/);
   assert.ok(loadConfig(vault).projects.demo);
 });
+
+test("stop: opt-in quality checks block on failure and stay quiet when off", () => {
+  const { vault, repo, spec } = fixture();
+  fs.writeFileSync(path.join(repo, "src/b.php"), "new\n");
+  fs.appendFileSync(spec.file, "\n<!-- touched -->\n"); // satisfy the docs gate
+  const cfgPath = path.join(vault, "brain.config.json");
+  const cfg = JSON.parse(fs.readFileSync(cfgPath, "utf8"));
+  const failing = { cmd: "node", args: ["-e", "console.log('lint exploded');process.exit(1)"], name: "fakelint" };
+  cfg.projects.demo.checks = { onStop: false, commands: [failing] };
+  fs.writeFileSync(cfgPath, JSON.stringify(cfg));
+  assert.deepEqual(stopReasons(vault, "demo").filter((r) => r.includes("Quality checks")), []);
+  cfg.projects.demo.checks.onStop = true;
+  fs.writeFileSync(cfgPath, JSON.stringify(cfg));
+  const r = stopReasons(vault, "demo").find((x) => x.includes("Quality checks"));
+  assert.match(r, /FAIL fakelint/);
+  assert.match(r, /lint exploded/);
+});

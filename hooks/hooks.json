@@ -39,7 +39,7 @@
             "args": [
               "${CLAUDE_PLUGIN_ROOT}/hooks/stop.mjs"
             ],
-            "timeout": 20
+            "timeout": 120
           }
         ]
       }

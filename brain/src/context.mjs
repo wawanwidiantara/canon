@@ -8,6 +8,8 @@ import { parseBehaviors } from "./markdown.mjs";
 import { validate } from "./validate.mjs";
 import { listDocs, loadConfig } from "./vault.mjs";
 import { checkAnchors, repoFor } from "./anchors.mjs";
+import { formatResults, planChecks, runChecks } from "./check.mjs";
+import { changedFiles } from "./mutation.mjs";
 
 // Vault location: $BRAIN_VAULT, else the path in ~/.config/brain/vault.
 export function resolveVault() {
@@ -141,6 +143,13 @@ export function stopReasons(vault, project) {
     reasons.push(
       `Code changed in ${repo} but no doc changed under projects/${project}. Update or create the spec (\`brain new spec ${project} <slug>\`, \`brain task\`, \`brain anchor\`). If these changes need no doc, run \`brain skip-docs\` in the repo.`,
     );
+  }
+  // Opt-in fast quality checks (projects.<slug>.checks.onStop = true).
+  const checks = loadConfig(vault).projects?.[project]?.checks;
+  if (checks?.onStop && repo && code) {
+    const plans = planChecks(repo, changedFiles(repo), { override: checks, fast: true });
+    const failed = runChecks(repo, plans).filter((r) => !r.ok);
+    if (failed.length) reasons.push(`Quality checks failed on the changed files. Fix them:\n${formatResults(failed)}`);
   }
   return reasons;
 }
