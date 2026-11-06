@@ -1,6 +1,5 @@
 import fs from "node:fs";
-import { loadConfig } from "../brain/src/vault.mjs";
-import { projectForCwd, resolveVault } from "../brain/src/context.mjs";
+import { resolveProject, resolveVault } from "../brain/src/context.mjs";
 
 export function readInput() {
   try {
@@ -16,7 +15,7 @@ export function target(input) {
   try {
     const vault = resolveVault();
     if (!vault || !fs.existsSync(vault)) return null;
-    const project = projectForCwd(loadConfig(vault), input.cwd ?? process.cwd());
+    const project = resolveProject(vault, input.cwd ?? process.cwd());
     return project ? { vault, project } : null;
   } catch {
     return null;

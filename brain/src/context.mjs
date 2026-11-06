@@ -6,7 +6,9 @@ import os from "node:os";
 import path from "node:path";
 import { parseBehaviors } from "./markdown.mjs";
 import { validate } from "./validate.mjs";
-import { listDocs, loadConfig } from "./vault.mjs";
+import { listDocs, loadConfig, loadLocal, saveLocal } from "./vault.mjs";
+import { gitTop, normalizeRemote, originOf } from "./remote.mjs";
+import { pullIfDue, syncSettings, vaultState } from "./sync.mjs";
 import { checkAnchors, repoFor } from "./anchors.mjs";
 import { configDir, isWithin } from "./platform.mjs";
 import { inspect as cgInspect } from "./codegraph.mjs";
@@ -28,12 +30,34 @@ export function resolveVault() {
 export function projectForCwd(config, cwd) {
   let best = null;
   for (const [slug, p] of Object.entries(config.projects ?? {})) {
+    if (!p.repo) continue; // known by remote only, not mapped on this device
     const repo = path.resolve(p.repo);
     if (isWithin(repo, cwd) && (!best || repo.length > best.len)) {
       best = { slug, len: repo.length };
     }
   }
   return best?.slug ?? null;
+}
+
+// Which project is this directory in? Path first; otherwise by git remote, which
+// is how a repo is recognized on a device where it was never mapped by hand.
+// A second clone of an already-mapped repo is left alone rather than guessed at.
+export function resolveProject(vault, cwd) {
+  const config = loadConfig(vault);
+  const byPath = projectForCwd(config, cwd);
+  if (byPath) return byPath;
+  const top = gitTop(cwd);
+  const remote = top && normalizeRemote(originOf(top));
+  if (!remote) return null;
+  const slug = Object.entries(config.projects ?? {}).find(([, p]) => p.remote && (p.remote === remote || normalizeRemote(p.remote) === remote))?.[0];
+  if (!slug) return null;
+  const current = config.projects[slug].repo;
+  if (current && fs.existsSync(current)) return null;
+  const local = loadLocal(vault);
+  local.projects ??= {};
+  local.projects[slug] = { ...local.projects[slug], repo: path.resolve(top) };
+  saveLocal(vault, local);
+  return slug;
 }
 
 const inProject = (d, project) => d.data?.project === project;
@@ -72,7 +96,7 @@ export function staleFor(vault, project) {
   return out;
 }
 
-export function sessionBrief(vault, project) {
+export function sessionBrief(vault, project, { pull = null } = {}) {
   const work = openWork(vault, project);
   const findings = projectFindings(vault, project);
   const stale = staleFor(vault, project);
@@ -86,6 +110,9 @@ export function sessionBrief(vault, project) {
     if (cg.index && cg.wired.length) lines.push("Code graph is available: for \"how does X work\" or \"where is X used\" questions, call `codegraph_explore` before grepping.");
     if (loadConfig(vault).projects?.[project]?.quicksilver === true) lines.push("Quicksilver (`qs`) is allowed in this project for bulk fuzzy triage; do not use it for decisions.");
   }
+  if (pull && !pull.ok && pull.skipped) lines.push(`Vault sync: ${pull.skipped}.`);
+  const vs = vaultState(vault);
+  if (vs.git && vs.hasRemote && vs.ahead > 0) lines.push(`Vault has ${vs.ahead} commit(s) not pushed; \`brain sync\` publishes them.`);
   if (work.length) {
     lines.push("Open specs:");
     for (const w of work) {

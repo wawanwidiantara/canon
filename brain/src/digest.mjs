@@ -111,8 +111,18 @@ export function buildDigest(jsonl) {
   return d;
 }
 
-export function digestDir(vault, project) {
-  return path.join(vault, ".brain", "digests", project);
+// Digests stay on this device unless sync.digests is on, then they live in the
+// vault proper (digests/<project>) and travel with it.
+export function digestDir(vault, project, tracked = trackedDigests(vault)) {
+  return tracked ? path.join(vault, "digests", project) : path.join(vault, ".brain", "digests", project);
+}
+
+function trackedDigests(vault) {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(vault, "brain.config.json"), "utf8")).sync?.digests === true;
+  } catch {
+    return false;
+  }
 }
 
 export function saveDigest(vault, project, digest) {
@@ -124,17 +134,22 @@ export function saveDigest(vault, project, digest) {
 }
 
 export function loadDigests(vault, project, since = null) {
-  const dir = digestDir(vault, project);
-  if (!fs.existsSync(dir)) return [];
-  return fs
-    .readdirSync(dir)
-    .filter((f) => f.endsWith(".json"))
-    .map((f) => JSON.parse(fs.readFileSync(path.join(dir, f), "utf8")))
+  const seen = new Set();
+  const all = [];
+  for (const dir of [digestDir(vault, project, false), digestDir(vault, project, true)]) {
+    if (!fs.existsSync(dir)) continue;
+    for (const f of fs.readdirSync(dir)) {
+      if (!f.endsWith(".json") || seen.has(f)) continue;
+      seen.add(f);
+      all.push(JSON.parse(fs.readFileSync(path.join(dir, f), "utf8")));
+    }
+  }
+  return all
     .filter((d) => !since || (d.ended ?? "") > since)
     .sort((a, b) => (a.started ?? "").localeCompare(b.started ?? ""));
 }
 
-const markerFile = (vault, project) => path.join(digestDir(vault, project), ".last-retro");
+const markerFile = (vault, project) => path.join(digestDir(vault, project, false), ".last-retro");
 
 export function lastRetro(vault, project) {
   const f = markerFile(vault, project);
@@ -142,7 +157,7 @@ export function lastRetro(vault, project) {
 }
 
 export function markRetroDone(vault, project) {
-  fs.mkdirSync(digestDir(vault, project), { recursive: true });
+  fs.mkdirSync(digestDir(vault, project, false), { recursive: true });
   fs.writeFileSync(markerFile(vault, project), new Date().toISOString() + "\n");
 }
 

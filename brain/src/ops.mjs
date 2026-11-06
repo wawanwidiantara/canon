@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { stringify } from "./frontmatter.mjs";
@@ -7,6 +8,7 @@ import { getSection, isBlank, parseBehaviors, stripComments, updateBehavior } fr
 import { validate } from "./validate.mjs";
 import { anchorFor, checkAnchors, repoFor } from "./anchors.mjs";
 import { findDoc, listDocs, loadConfig, saveConfig } from "./vault.mjs";
+import { normalizeRemote, originOf } from "./remote.mjs";
 
 const titleCase = (slug) => slug.replace(/-/g, " ").replace(/^./, (c) => c.toUpperCase());
 
@@ -21,20 +23,49 @@ function nextNumber(dir, prefix) {
   return String(max + 1).padStart(3, "0");
 }
 
-export function init(vault) {
+const VAULT_README = `# Project brain vault
+
+Specs, phases, ADRs, lessons and notes for my projects, managed by the \`brain\` CLI
+(software-factory). This repo is the single source of truth for project documentation.
+
+- Create and change docs with \`brain\` (\`brain new\`, \`brain task\`, \`brain approve\`, \`brain complete\`). Do not hand-write frontmatter.
+- \`brain validate\` checks every doc; \`brain query <words>\` searches them.
+- \`projects/<slug>/\` holds one project: 00_context, 01_architecture, 02_specs, 03_phases, 04_audits, 05_lessons.
+- \`.brain/\` is generated or per-device (search index, local repo paths) and is not committed.
+
+Keep this repository private.
+`;
+
+export function init(vault, { git = true } = {}) {
   fs.mkdirSync(vault, { recursive: true });
+  const readme = path.join(vault, "README.md");
+  if (!fs.existsSync(readme)) fs.writeFileSync(readme, VAULT_README);
+  if (git && !fs.existsSync(path.join(vault, ".git"))) {
+    try {
+      execFileSync("git", ["-C", vault, "init", "-q", "-b", "main"], { stdio: "ignore" });
+    } catch {
+      // git missing or too old for -b: leave the folder usable without it
+    }
+  }
   const cfg = path.join(vault, "brain.config.json");
   const ignore = path.join(vault, ".gitignore");
   if (!fs.existsSync(ignore)) fs.writeFileSync(ignore, ".brain/\n");
-  if (!fs.existsSync(cfg)) fs.writeFileSync(cfg, JSON.stringify({ schema_version: 1, projects: {} }, null, 2) + "\n");
+  if (!fs.existsSync(cfg)) fs.writeFileSync(cfg, JSON.stringify({ schema_version: 1, projects: {}, sync: { pullOnStart: true, digests: false } }, null, 2) + "\n");
 }
 
-export function mapProject(vault, slug, repo) {
+// Maps a project to a repo on this device. The repo's git remote is recorded in
+// the shared config, so other devices recognize the same repo without mapping.
+export function mapProject(vault, slug, repo, { remote } = {}) {
   if (!SLUG_RE.test(slug)) throw new Error(`bad project slug '${slug}'`);
   const config = loadConfig(vault);
   config.projects ??= {};
-  config.projects[slug] = { repo: path.resolve(repo) };
+  const abs = path.resolve(repo);
+  const found = remote ?? originOf(abs);
+  config.projects[slug] = { ...config.projects[slug], repo: abs };
+  const norm = normalizeRemote(found);
+  if (norm) config.projects[slug].remote = norm;
   saveConfig(vault, config);
+  return norm;
 }
 
 // Creates a doc from the schema. Returns { id, file }.

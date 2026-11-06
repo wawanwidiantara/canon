@@ -22,6 +22,19 @@ Status: brain core and hooks work and are unit-tested (22 tests). Hooks were ver
 
 Works on Linux, macOS and Windows (Node 22.13+). Windows notes: the `Bash` tool needs Git for Windows, or use `brain.cmd` from PowerShell/cmd; the vault path file lives in `%APPDATA%\brain\vault`. CI runs the tests on all three systems; I could only run them on Linux myself.
 
+## Vault and multiple devices
+
+Docs live in a **vault**: a private git repo of their own, never inside your app repos and never in this public repo.
+
+```
+brain init ~/brain-vault        # config, README, .gitignore, git repo
+cd ~/brain-vault && git remote add origin <private-repo-url> && git add -A && git commit -m init && git push -u origin main
+brain setup ~/brain-vault       # remember the vault on this device
+brain map my-app ~/code/my-app  # saves the repo's git remote in the shared config
+```
+
+On another device: clone the vault, run `brain setup <path>`, clone your app repos. A repo is recognized by its git remote, so no mapping is needed. At session start the vault is fast-forward pulled (at most every 10 minutes, never touching local edits, offline is fine). `brain sync` commits vault changes, rebases on the remote and pushes; it stops and keeps your commit if there is a conflict. Push is never automatic. Session digests stay per device unless `sync.digests` is `true` in `brain.config.json`.
+
 Setup:
 1. `claude --plugin-dir .` (or install the plugin) and put the vault path in `BRAIN_VAULT` or the file `vault` in `~/.config/brain/` (`%APPDATA%\brain\` on Windows).
 2. Map each repo: `brain map <project> <repo-path>` inside the vault.

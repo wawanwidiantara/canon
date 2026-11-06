@@ -3,7 +3,8 @@ import { approve, complete, enforce, supersede } from "../src/ops.mjs";
 import { addAnchors, findStale, init, mapProject, markStale, newDoc, setTask, verifySpec } from "../src/ops.mjs";
 import { validate } from "../src/validate.mjs";
 import { findVault, listDocs, loadConfig } from "../src/vault.mjs";
-import { projectForCwd, writeSkip } from "../src/context.mjs";
+import { resolveProject, writeSkip } from "../src/context.mjs";
+import { setupDevice, syncVault } from "../src/sync.mjs";
 import { repoFor } from "../src/anchors.mjs";
 import { buildDigest, loadDigests, lastRetro, markRetroDone, retroReport, saveDigest } from "../src/digest.mjs";
 import { apply as cgApply, describe as cgDescribe, inspect as cgInspect, plan as cgPlan } from "../src/codegraph.mjs";
@@ -12,8 +13,10 @@ import { changedFiles, detectTools, filterSurvivors, plansFor, runMutation } fro
 import { parseBehaviors } from "../src/markdown.mjs";
 
 const USAGE = `brain <command>
-  init [dir]                               create a vault (brain.config.json)
-  map <project> <repo-path>                tell the vault where a project's code lives
+  init [dir] [--no-git]                    create a vault: config, README, .gitignore and a git repo
+  setup [vault-dir]                        remember the vault location on this device
+  sync [--pull-only]                       commit vault changes, rebase on the remote, push
+  map <project> <repo-path> [--remote U]   map a repo on this device; its git remote is saved so other devices find it by themselves
   new <type> <project> <slug> [--title T] [--depends id,id] [--stack a,b]
   validate                                 check every doc; exit 1 on findings
   task <spec-id> <B#> <todo|doing|done> [--test path::name]
@@ -66,12 +69,23 @@ async function main(argv) {
   const [cmd, ...rest] = argv;
   const { pos, f } = flags(rest);
   switch (cmd) {
-    case "init":
-      init(pos[0] ?? process.cwd());
-      return console.log("initialized");
-    case "map":
-      mapProject(findVault(), pos[0], pos[1]);
-      return console.log(`mapped ${pos[0]}`);
+    case "init": {
+      const dir = pos[0] ?? process.cwd();
+      init(dir, { git: !f["no-git"] });
+      return console.log(`initialized vault in ${dir}${f["no-git"] ? "" : " (git repo)"}. Next: add a private remote, then \`brain setup ${dir}\``);
+    }
+    case "setup": {
+      const r = setupDevice(pos[0] ?? process.cwd());
+      return console.log(`this device now uses the vault at ${r.vault}\n(saved in ${r.file})`);
+    }
+    case "sync": {
+      for (const line of syncVault(findVault(), { push: !f["pull-only"] })) console.log(line);
+      return;
+    }
+    case "map": {
+      const remote = mapProject(findVault(), pos[0], pos[1], { remote: typeof f.remote === "string" ? f.remote : undefined });
+      return console.log(`mapped ${pos[0]}${remote ? ` (remote ${remote})` : " (no git remote found; other devices need `brain map` too)"}`);
+    }
     case "new": {
       const [type, project, slug] = pos;
       const r = newDoc(findVault(), { type, project, slug, title: f.title, depends: list(f.depends), stack: list(f.stack) });
@@ -109,7 +123,7 @@ async function main(argv) {
       try {
         const vault = findVault();
         const config = loadConfig(vault);
-        override = config.projects?.[projectForCwd(config, repo)]?.mutation ?? null;
+        override = config.projects?.[resolveProject(vault, repo)]?.mutation ?? null;
       } catch {
         // no vault: built-in detection only
       }
@@ -157,7 +171,7 @@ async function main(argv) {
     }
     case "retro": {
       const vault = findVault();
-      const project = pos[0] ?? projectForCwd(loadConfig(vault), process.cwd());
+      const project = pos[0] ?? resolveProject(vault, process.cwd());
       if (!project) throw new Error("give a project or run inside a mapped repo");
       if (f.done) {
         markRetroDone(vault, project);
@@ -170,8 +184,9 @@ async function main(argv) {
       const base = typeof f.base === "string" ? f.base : undefined;
       let override = null;
       try {
-        const config = loadConfig(findVault());
-        override = config.projects?.[projectForCwd(config, repo)]?.checks ?? null;
+        const vault = findVault();
+        const config = loadConfig(vault);
+        override = config.projects?.[resolveProject(vault, repo)]?.checks ?? null;
       } catch {
         // no vault: built-in detection only
       }
@@ -227,7 +242,7 @@ async function main(argv) {
     case "skip-docs": {
       const vault = findVault();
       const config = loadConfig(vault);
-      const project = projectForCwd(config, process.cwd());
+      const project = resolveProject(vault, process.cwd());
       if (!project) throw new Error("cwd is not inside a mapped repo");
       writeSkip(repoFor(config, project));
       return console.log(`ok: no doc needed for the current changes in ${project}`);

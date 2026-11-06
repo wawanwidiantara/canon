@@ -6,7 +6,8 @@ The source of truth is `brain/src/schema.mjs`. This page explains it.
 
 ```
 <vault>/
-  brain.config.json            schema_version, projects -> { repo: /abs/path }
+  brain.config.json            shared via git: schema_version, sync settings, projects -> { remote, checks, mutation, quicksilver }
+  .brain/local.json            per device, not committed: projects -> { repo: /abs/path }
   00_global_standards/         type global-rule, project "global", bare id
   projects/<slug>/
     00_context/                context; discovery/ for type discovery
@@ -55,6 +56,10 @@ In a phase: `- [[spec-id#B1]]`. The target spec and behavior must exist.
 `brain anchor <spec> <path...>` stores a short sha256 of each governed file. `brain stale` compares those hashes to the repo. A mismatch or missing file means the spec may no longer be true. `brain stale --mark` sets `needs-review`; `brain verify <spec>` re-hashes after a human or the agent has confirmed the spec still matches.
 
 This catches code that moved under a spec. It cannot catch prose that was already wrong, so specs still need an occasional read.
+
+## Devices
+
+The vault is its own git repo. `brain.config.json` is shared; repo paths are per device in `.brain/local.json`. A project's repo is identified by its normalized git remote (`github.com/owner/repo`; ssh host aliases are folded), so the same project is found on any device. Anchor hashes fold CRLF to LF, so a Windows and a Linux checkout agree.
 
 ## Not built yet
 

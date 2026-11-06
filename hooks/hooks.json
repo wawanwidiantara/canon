@@ -11,7 +11,7 @@
             "args": [
               "${CLAUDE_PLUGIN_ROOT}/hooks/session-start.mjs"
             ],
-            "timeout": 10
+            "timeout": 20
           }
         ]
       }

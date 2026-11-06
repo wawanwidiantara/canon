@@ -3,8 +3,13 @@ import fs from "node:fs";
 import path from "node:path";
 import { toPosix } from "./platform.mjs";
 
+// Text files hash with CRLF folded to LF, so a Windows checkout (autocrlf) and a
+// Linux one give the same hash. Binary files hash their raw bytes.
 export function hashFile(file) {
-  return crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex").slice(0, 12);
+  const buf = fs.readFileSync(file);
+  const isText = !buf.subarray(0, 8000).includes(0);
+  const data = isText ? Buffer.from(buf.toString("latin1").replace(/\r\n/g, "\n"), "latin1") : buf;
+  return crypto.createHash("sha256").update(data).digest("hex").slice(0, 12);
 }
 
 // "src/a.php@abc123def456" -> { path, hash }

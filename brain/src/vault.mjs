@@ -17,12 +17,46 @@ export function findVault(start = process.cwd()) {
   }
 }
 
-export function loadConfig(vault) {
-  return JSON.parse(fs.readFileSync(path.join(vault, "brain.config.json"), "utf8"));
+// Two files: brain.config.json is shared through git (settings, remote URLs);
+// .brain/local.json holds this device's repo paths and is never committed.
+const localFile = (vault) => path.join(vault, ".brain", "local.json");
+
+export function loadLocal(vault) {
+  try {
+    return JSON.parse(fs.readFileSync(localFile(vault), "utf8"));
+  } catch {
+    return {};
+  }
 }
 
+export function saveLocal(vault, local) {
+  fs.mkdirSync(path.dirname(localFile(vault)), { recursive: true });
+  fs.writeFileSync(localFile(vault), JSON.stringify(local, null, 2) + "\n");
+}
+
+// Shared config with this device's repo paths merged in as `projects.<slug>.repo`.
+export function loadConfig(vault) {
+  const config = JSON.parse(fs.readFileSync(path.join(vault, "brain.config.json"), "utf8"));
+  const local = loadLocal(vault);
+  for (const [slug, p] of Object.entries(config.projects ?? {})) {
+    if (local.projects?.[slug]?.repo) p.repo = local.projects[slug].repo;
+  }
+  return config;
+}
+
+// Repo paths are split out to the local file, everything else is shared.
 export function saveConfig(vault, config) {
-  fs.writeFileSync(path.join(vault, "brain.config.json"), JSON.stringify(config, null, 2) + "\n");
+  const shared = JSON.parse(JSON.stringify(config));
+  const local = loadLocal(vault);
+  local.projects ??= {};
+  for (const [slug, p] of Object.entries(shared.projects ?? {})) {
+    if (p.repo) {
+      local.projects[slug] = { ...local.projects[slug], repo: p.repo };
+      delete p.repo;
+    }
+  }
+  saveLocal(vault, local);
+  fs.writeFileSync(path.join(vault, "brain.config.json"), JSON.stringify(shared, null, 2) + "\n");
 }
 
 function walk(dir, out) {
