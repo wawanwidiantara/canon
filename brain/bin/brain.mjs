@@ -4,6 +4,7 @@ import { validate } from "../src/validate.mjs";
 import { findVault, listDocs, loadConfig } from "../src/vault.mjs";
 import { projectForCwd, writeSkip } from "../src/context.mjs";
 import { repoFor } from "../src/anchors.mjs";
+import { buildDigest, loadDigests, lastRetro, markRetroDone, retroReport, saveDigest } from "../src/digest.mjs";
 import { changedFiles, detectTools, filterSurvivors, plansFor, runMutation } from "../src/mutation.mjs";
 import { parseBehaviors } from "../src/markdown.mjs";
 
@@ -18,6 +19,8 @@ const USAGE = `brain <command>
   verify <spec-id>                         confirm spec matches code, re-hash anchors
   status [project]                         behavior progress per spec
   mutate [--base B] [--run]                mutation tool for this repo scoped to changed files; --run executes, prints survivors only
+  digest <transcript.jsonl> [--project P]  summarize a session (saved to the vault if --project given)
+  retro [project] [--done]                 report on session digests since the last retro; --done marks it reviewed
   skip-docs                                current code changes need no doc (run inside the repo)
 Vault: nearest brain.config.json above cwd, or $BRAIN_VAULT.`;
 
@@ -111,6 +114,22 @@ async function main(argv) {
         for (const n of p.notes) console.log(`note: ${n}`);
       }
       return;
+    }
+    case "digest": {
+      const text = (await import("node:fs")).readFileSync(pos[0], "utf8");
+      const d = buildDigest(text);
+      if (typeof f.project === "string") return console.log(saveDigest(findVault(), f.project, d));
+      return console.log(JSON.stringify(d, null, 1));
+    }
+    case "retro": {
+      const vault = findVault();
+      const project = pos[0] ?? projectForCwd(loadConfig(vault), process.cwd());
+      if (!project) throw new Error("give a project or run inside a mapped repo");
+      if (f.done) {
+        markRetroDone(vault, project);
+        return console.log(`retro marked done for ${project}`);
+      }
+      return console.log(retroReport(loadDigests(vault, project, lastRetro(vault, project))));
     }
     case "survivors": {
       const input = (await import("node:fs")).readFileSync(0, "utf8");

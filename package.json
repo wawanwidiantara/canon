@@ -7,6 +7,6 @@
   "bin": { "brain": "brain/bin/brain.mjs" },
   "engines": { "node": ">=22.5" },
   "scripts": {
-    "test": "node --test brain/test/brain.test.mjs brain/test/hooks.test.mjs brain/test/mutation.test.mjs"
+    "test": "node --test brain/test/brain.test.mjs brain/test/hooks.test.mjs brain/test/mutation.test.mjs brain/test/digest.test.mjs"
   }
 }
