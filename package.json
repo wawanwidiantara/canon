@@ -1,0 +1,12 @@
+{
+  "name": "software-factory",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Personal agentic software factory: brain CLI, skills, hooks.",
+  "bin": { "brain": "brain/bin/brain.mjs" },
+  "engines": { "node": ">=22.5" },
+  "scripts": {
+    "test": "node --test brain/test/brain.test.mjs brain/test/hooks.test.mjs"
+  }
+}

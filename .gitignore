@@ -1,0 +1,8 @@
+node_modules/
+*.sqlite
+*.sqlite-journal
+.DS_Store
+
+# local only: source material and personal notes
+reference/
+.private/
