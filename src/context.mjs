@@ -5,6 +5,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { parseBehaviors } from "./markdown.mjs";
+import { UNFINISHED } from "./schema.mjs";
 import { validate } from "./validate.mjs";
 import { deviceVault, listDocs, loadConfig, loadLocal, lockVault, saveLocal } from "./vault.mjs";
 import { gitTop, normalizeRemote, originOf } from "./remote.mjs";
@@ -72,7 +73,7 @@ export function openWork(vault, project) {
   const out = [];
   for (const d of listDocs(vault)) {
     if (d.data?.type !== "spec" || !inProject(d, project)) continue;
-    if (!["draft", "active", "needs-review"].includes(d.data.status)) continue;
+    if (!UNFINISHED.includes(d.data.status)) continue;
     const { items } = parseBehaviors(d.body);
     out.push({
       id: d.data.id,

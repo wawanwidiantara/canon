@@ -1,5 +1,5 @@
 import path from "node:path";
-import { NO_CODE_SECTIONS, STATUS, TYPES, TYPE_NAMES } from "./schema.mjs";
+import { DELIVERED, NOT_YET_CANON, NO_CODE_SECTIONS, STATUS, TYPES, TYPE_NAMES } from "./schema.mjs";
 import { getSection, isBlank, parseBehaviors, stripComments, stripFences } from "./markdown.mjs";
 import { listDocs, projectFromPath } from "./vault.mjs";
 import { parseAnchor } from "./anchors.mjs";
@@ -57,7 +57,7 @@ export function validate(vault) {
 
     const def = TYPES[data.type];
     if (!def) continue;
-    const filled = data.status && !["draft", "superseded"].includes(data.status);
+    const filled = data.status && !NOT_YET_CANON.includes(data.status);
     for (const [name] of def.sections) {
       const sec = getSection(body, name);
       if (sec === null) at(`missing section '## ${name}'`);
@@ -115,7 +115,7 @@ function checkSpec(data, body, at) {
     seen.add(b.id);
     if (b.state === "done" && !b.test) at(`behavior ${b.id} is done but has no (test: ...)`);
   }
-  if (["active", "completed"].includes(data.status) && items.length === 0) at("active spec needs at least one behavior");
+  if (DELIVERED.includes(data.status) && items.length === 0) at("active spec needs at least one behavior");
 }
 
 function checkAnchorList(data, at) {
