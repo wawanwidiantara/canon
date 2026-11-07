@@ -21,24 +21,27 @@ const sleep = (ms) => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 
 export function withLock(lockDir, fn, { waitMs = 5000, staleMs = 15000 } = {}) {
   fs.mkdirSync(path.dirname(lockDir), { recursive: true });
   const start = Date.now();
+  let last = null;
   for (;;) {
     try {
       fs.mkdirSync(lockDir);
       break;
     } catch (e) {
-      if (e.code !== "EEXIST") throw e;
+      // Windows reports EPERM/EACCES/EBUSY, not EEXIST, while another process is deleting the lock directory.
+      if (!["EEXIST", "EPERM", "EACCES", "EBUSY"].includes(e.code)) throw e;
+      last = e;
       try {
         if (Date.now() - fs.statSync(lockDir).mtimeMs > staleMs) fs.rmSync(lockDir, { recursive: true, force: true });
       } catch {
         // released between our checks
       }
-      if (Date.now() - start > waitMs) throw new Error(`timed out waiting for lock ${lockDir}`);
+      if (Date.now() - start > waitMs) throw new Error(`timed out waiting for lock ${lockDir}${last && last.code !== "EEXIST" ? ` (${last.code})` : ""}`);
       sleep(25);
     }
   }
   try {
     return fn();
   } finally {
-    fs.rmSync(lockDir, { recursive: true, force: true });
+    fs.rmSync(lockDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 20 });
   }
 }
