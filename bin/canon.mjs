@@ -36,6 +36,7 @@ const USAGE = `canon <command>
   query --active <project> [--type T]      one line per active doc
   show <id> [--section S]                  print a doc or a single section
   check [--run] [--fast] [--base B]        quality checks on changed files (lint, types, dead code, duplication, security); --run executes, capped output
+  gate init | fast | full                  the repo's own gate (canon.gate.json): init writes it from existing scripts; fast/full run it, stop at the first failure
   codegraph [project] [--setup [--yes]]    show how codegraph is set up for mapped repos; --setup plans (and with --yes applies) only the missing pieces
   approve <id>                             draft -> active, only if the doc validates as active
   complete <id>                            active -> completed; a phase or spec needs every behavior done and no stale code
@@ -170,6 +171,24 @@ async function main(argv) {
       if (typeof f.active === "string") return out(ix.listActive(vault, f.active, typeof f.type === "string" ? f.type : undefined));
       if (!pos.length) throw new Error("query needs text or one of --governs --deps --dependents --open --active");
       return out(ix.search(vault, pos.join(" "), { project, type: typeof f.type === "string" ? f.type : undefined, status: typeof f.status === "string" ? f.status : undefined, limit: Number(f.limit) || 8 }));
+    }
+    case "gate": {
+      const g = await import("../src/gates.mjs");
+      const repo = (() => {
+        const vault = findVault();
+        const project = resolveProject(vault, process.cwd());
+        return (project && repoFor(loadConfig(vault), project)) || process.cwd();
+      })();
+      const level = pos[0];
+      if (level === "init") {
+        const { file, gate } = g.initGate(repo);
+        return console.log(`wrote ${file} (${gate.fast.length} fast, ${gate.full.length} full). Review it: only commands the repo already defines were added.`);
+      }
+      if (!["fast", "full"].includes(level)) throw new Error("usage: canon gate init | fast | full");
+      const results = g.runGate(repo, level);
+      console.log(g.formatGate(level, results));
+      if (results.some((r) => !r.ok)) process.exit(1);
+      return;
     }
     case "doctor": {
       const results = doctor();

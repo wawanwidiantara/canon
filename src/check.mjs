@@ -150,7 +150,7 @@ export function filterClones(text, files) {
     .join("\n");
 }
 
-const tail = (s, n) => {
+export const tail = (s, n) => {
   const lines = s.replace(/\x1b\[[0-9;]*m/g, "").split("\n").map((l) => l.trimEnd()).filter(Boolean);
   return lines.length > n ? [`… ${lines.length - n} earlier line(s) omitted`, ...lines.slice(-n)].join("\n") : lines.join("\n");
 };

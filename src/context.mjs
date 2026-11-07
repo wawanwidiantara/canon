@@ -11,6 +11,7 @@ import { deviceVault, listDocs, loadConfig, loadLocal, lockVault, saveLocal } fr
 import { gitTop, normalizeRemote, originOf } from "./remote.mjs";
 import { pullIfDue, syncSettings, vaultState } from "./sync.mjs";
 import { checkAnchors, repoFor, worktreeOf } from "./anchors.mjs";
+import { formatGate, loadGate, runGate } from "./gates.mjs";
 import { canonical, configDir, isWithin } from "./platform.mjs";
 import { inspect as cgInspect } from "./codegraph.mjs";
 import { formatResults, planChecks, runChecks } from "./check.mjs";
@@ -241,6 +242,18 @@ export function stopReasons(vault, project, { since = null, baseCode = null } = 
     const plans = planChecks(repo, changedFiles(repo), { override: checks, fast: true });
     const failed = runChecks(repo, plans).filter((r) => !r.ok);
     if (failed.length) reasons.push(`Quality checks failed on the changed files. Fix them:\n${formatResults(failed)}`);
+  }
+  // The repo's own gate (canon.gate.json): its fast commands must pass before the turn ends.
+  if (repo && code && code !== baseCode && loadConfig(vault).projects?.[project]?.gate?.onStop !== false) {
+    try {
+      const gate = loadGate(repo);
+      if (gate?.fast.length) {
+        const results = runGate(repo, "fast", { budgetMs: 90000 });
+        if (results.some((r) => !r.ok)) reasons.push(`The fast gate failed. Fix it, then run \`canon gate fast\`:\n${formatGate("fast", results)}`);
+      }
+    } catch (e) {
+      reasons.push(e.message);
+    }
   }
   return reasons;
 }

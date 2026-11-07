@@ -34,6 +34,8 @@ Every command works from anywhere inside a mapped repo or the vault. The vault i
 | `canon verify <doc-id>` | Confirms a doc matches the code, re-hashes the anchors and records the branch and commit. |
 | `canon status [project]` | Behavior progress per spec. |
 | `canon mutate [--base B] [--run]` | Picks the mutation tool for the repo, scoped to changed files. `--run` runs it and prints survivors only. |
+| `canon gate init` | Writes `canon.gate.json` in the repo from lint, type-check and test scripts it already defines. It adds no tool flags of its own. |
+| `canon gate fast` / `canon gate full` | Runs the repo's gate and stops at the first failure. `full` runs `fast` first. Exit 1 on failure. A Stop hook runs `fast` when code changed this session (`projects.<slug>.gate.onStop = false` turns it off). |
 | `canon check [--run] [--fast] [--base B]` | Quality checks on changed files. `--fast` skips slow tools. |
 
 ## Find

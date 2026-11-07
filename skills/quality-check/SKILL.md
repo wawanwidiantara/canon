@@ -7,6 +7,8 @@ Machines do the checking; you only read what failed. This is the free replacemen
 
 ## Run
 
+If the repo has a `canon.gate.json`, run `canon gate fast` after each step and `canon gate full` before closing. That gate is the repo's own definition of done, so it comes before the checks below. No gate yet? `canon gate init` writes one from scripts the repo already has; read it before committing it.
+
 ```
 canon check            # lists what would run for the changed files
 canon check --run      # runs it; a pass is one line, a failure is the last 25 lines

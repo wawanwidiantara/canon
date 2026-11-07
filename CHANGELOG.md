@@ -10,5 +10,6 @@ First public version, named Canon.
 - ADRs and data models can carry anchors, so `canon stale` covers the code claims they make. `canon new` notes when the heading falls back to the slug.
 - Every read-modify-write of a doc or of the config now holds a lock, and config writes are atomic. Before, eight simultaneous `canon task done` calls kept only five updates, silently.
 - Git worktrees work: a linked worktree of a mapped repo resolves to its project, and anchors, `canon stale` and the Stop gate check that worktree instead of the main checkout. `canon map` run inside a worktree maps the main checkout.
+- `canon gate`: the repo's own definition of done in `canon.gate.json` (`fast` and `full` command lists, run as argv without a shell, stop at the first failure). `canon gate init` writes it from scripts the repo already defines. The Stop hook runs `fast` when code changed in the session.
 - Hooks for session start, compaction, the end of a turn, Bash calls and session end.
 - Skills: `flow`, `grilling`, `tdd`, `mutation-testing`, `quality-check`, `debug`, `retro`, `correct`, `research`, `domain-model`, `onboard`, `vault`, `handoff`, `ub-mode`, `unslop`, `untangle`.

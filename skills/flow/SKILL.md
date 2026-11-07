@@ -21,7 +21,7 @@ Follow the steps in order. Scale to the size of the change, and stop at each mar
 6. **Build.** For each behavior run the `tdd` skill: `canon task <spec> B1 doing`, red, green, `canon task <spec> B1 done --test path::name`. Keep the spec in step with the code as you go.
 7. **Close the phase.**
    - `mutation-testing` on the changed files, then add the tests that matter.
-   - `quality-check`, fix real findings.
+   - `quality-check`, fix real findings. When the repo has `canon.gate.json`, `canon gate full` must pass before you close.
    - Optional, if the session brief lists `canon:reviewer`: spawn it with the spec id for an independent check of each behavior against the code, and fix every `gap`, `missing` and `drift` it reports. Skip this step when it is not listed; do not ask the user to enable it.
    - `canon stale`; for each stale spec re-read it against the code, fix it, `canon verify <spec-id>`.
    - `canon complete <phase-id>` (it refuses if a behavior is open or a spec is stale), then `canon validate`.
