@@ -1,6 +1,6 @@
 # Commands
 
-Every command works from anywhere inside a mapped repo or the vault. The vault is found from `$CANON_VAULT`, then the file `vault` in the config folder (`~/.config/canon/` on Linux and macOS, `%APPDATA%\canon\` on Windows), then the nearest `canon.config.json` above the current folder.
+Every command works from anywhere inside a mapped repo or the vault. The vault is found from `$CANON_VAULT`, then the nearest `canon.config.json` above the current folder (inside a vault you work on that vault), then the path `canon setup` saved in the file `vault` in the config folder (`~/.config/canon/` on Linux and macOS, `%APPDATA%\canon\` on Windows).
 
 ## Set up
 

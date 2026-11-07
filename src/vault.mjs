@@ -1,20 +1,35 @@
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
+import { configDir } from "./platform.mjs";
 import { parse } from "./frontmatter.mjs";
 
 const SKIP_DIRS = new Set([".git", ".obsidian", ".claude", ".canon", "node_modules"]);
 const SKIP_FILES = new Set(["README.md", "AGENTS.md", "CLAUDE.md"]);
 
-// Vault root = nearest ancestor containing canon.config.json.
+// The vault this device was pointed at by `canon setup`, or null.
+export function deviceVault() {
+  for (const dir of [configDir(process.env, process.platform, os.homedir()), path.join(os.homedir(), ".config", "canon")]) {
+    const f = path.join(dir, "vault");
+    if (fs.existsSync(f)) return fs.readFileSync(f, "utf8").trim();
+  }
+  return null;
+}
+
+// Which vault: $CANON_VAULT, else the nearest ancestor holding canon.config.json
+// (so inside a vault you work on that vault), else the one `canon setup` recorded.
 export function findVault(start = process.cwd()) {
   if (process.env.CANON_VAULT) return path.resolve(process.env.CANON_VAULT);
   let dir = path.resolve(start);
   for (;;) {
     if (fs.existsSync(path.join(dir, "canon.config.json"))) return dir;
     const up = path.dirname(dir);
-    if (up === dir) throw new Error("no canon.config.json found; run `canon init` or set CANON_VAULT");
+    if (up === dir) break;
     dir = up;
   }
+  const device = deviceVault();
+  if (device && fs.existsSync(path.join(device, "canon.config.json"))) return device;
+  throw new Error("no vault found; run `canon init` and `canon setup <dir>`, or set CANON_VAULT");
 }
 
 // Two files: canon.config.json is shared through git (settings, remote URLs);

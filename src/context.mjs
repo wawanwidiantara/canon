@@ -6,7 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { parseBehaviors } from "./markdown.mjs";
 import { validate } from "./validate.mjs";
-import { listDocs, loadConfig, loadLocal, saveLocal } from "./vault.mjs";
+import { deviceVault, listDocs, loadConfig, loadLocal, saveLocal } from "./vault.mjs";
 import { gitTop, normalizeRemote, originOf } from "./remote.mjs";
 import { pullIfDue, syncSettings, vaultState } from "./sync.mjs";
 import { checkAnchors, repoFor } from "./anchors.mjs";
@@ -19,11 +19,7 @@ import { changedFiles } from "./mutation.mjs";
 // (~/.config/canon on Linux and macOS, %APPDATA%\canon on Windows).
 export function resolveVault() {
   if (process.env.CANON_VAULT) return path.resolve(process.env.CANON_VAULT);
-  for (const dir of [configDir(process.env, process.platform, os.homedir()), path.join(os.homedir(), ".config", "canon")]) {
-    const f = path.join(dir, "vault");
-    if (fs.existsSync(f)) return fs.readFileSync(f, "utf8").trim();
-  }
-  return null;
+  return deviceVault();
 }
 
 // Project whose mapped repo contains cwd (longest match wins), else null.

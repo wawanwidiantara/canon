@@ -207,3 +207,20 @@ test("session-start hook pulls from the remote before building the brief", () =>
   assert.match(out.hookSpecificOutput.additionalContext, /demo-spec-001-fresh/); // arrived by pull
   assert.ok(fs.existsSync(cfgOf(b)));
 });
+
+test("the CLI finds the vault from any folder once `canon setup` has run", () => {
+  const root = tmp();
+  const vault = path.join(root, "vault");
+  const cfg = path.join(root, "cfg");
+  const elsewhere = path.join(root, "elsewhere");
+  fs.mkdirSync(elsewhere);
+  init(vault);
+  setupDevice(vault, { env: { XDG_CONFIG_HOME: cfg }, platform: process.platform, home: root });
+  const env = { ...process.env, XDG_CONFIG_HOME: cfg };
+  delete env.CANON_VAULT;
+  const run = (cwd) => spawnSync("node", [path.join(ROOT, "bin/canon.mjs"), "status"], { cwd, env, encoding: "utf8" });
+  const out = run(elsewhere);
+  assert.equal(out.status, 0, out.stderr);
+  assert.doesNotMatch(out.stderr, /no vault found/);
+  assert.equal(run(vault).status, 0); // inside a vault, that vault wins
+});
