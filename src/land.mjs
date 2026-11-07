@@ -3,7 +3,7 @@
 // the work lands only if the owned-path check, the repo's full gate and the
 // phase's completion check all pass, and it merges onto the main it was tested on.
 import { execFileSync } from "node:child_process";
-import { repoFor } from "./anchors.mjs";
+import { describeProblems, repoFor } from "./anchors.mjs";
 import { formatGate, loadGate, runGate, runRegen } from "./gates.mjs";
 import { completionProblems, complete, findStale, verifySpec } from "./ops.mjs";
 import { loadClaims, owned, release } from "./packets.mjs";
@@ -91,7 +91,7 @@ function landLocked(vault, phaseId, merge) {
     if (s.problems.every((p) => p.kind === "changed" && owned(c.owns, p.anchor.slice(0, p.anchor.lastIndexOf("@"))))) {
       verifySpec(vault, s.id);
       step(`re-verified ${s.id} (its changed anchors are inside the phase)`);
-    } else step(`${s.id} is still stale: ${s.problems.map((p) => `${p.kind} ${p.anchor}`).join(", ")}`);
+    } else step(`${s.id} is still stale: ${describeProblems(s.problems)}`);
   }
 
   try {

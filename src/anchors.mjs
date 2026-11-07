@@ -57,6 +57,9 @@ export function checkAnchors(repo, anchors) {
   return problems;
 }
 
+// "changed src/a.php@abc, missing src/b.php@def": one way to print stale problems.
+export const describeProblems = (problems) => problems.map((p) => `${p.kind} ${p.anchor}`).join(", ");
+
 export function anchorFor(repo, relPath) {
   const rel = toPosix(relPath).replace(/^\.\//, "");
   const abs = path.join(repo, rel);

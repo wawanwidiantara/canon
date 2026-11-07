@@ -5,17 +5,17 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { parseBehaviors } from "./markdown.mjs";
-import { ANCHORED } from "./schema.mjs";
 import { validate } from "./validate.mjs";
 import { deviceVault, listDocs, loadConfig, loadLocal, lockVault, saveLocal } from "./vault.mjs";
 import { gitTop, normalizeRemote, originOf } from "./remote.mjs";
 import { pullIfDue, syncSettings, vaultState } from "./sync.mjs";
-import { checkAnchors, repoFor, worktreeOf } from "./anchors.mjs";
+import { describeProblems, repoFor, worktreeOf } from "./anchors.mjs";
 import { formatGate, loadGate, runGate } from "./gates.mjs";
 import { canonical, configDir, isWithin } from "./platform.mjs";
 import { inspect as cgInspect } from "./codegraph.mjs";
 import { formatResults, planChecks, runChecks } from "./check.mjs";
 import { changedFiles } from "./mutation.mjs";
+import { findStale } from "./ops.mjs";
 
 // Vault location: $CANON_VAULT, else the path stored in <config dir>/vault
 // (~/.config/canon on Linux and macOS, %APPDATA%\canon on Windows).
@@ -90,15 +90,10 @@ export function projectFindings(vault, project) {
 }
 
 export function staleFor(vault, project) {
-  const repo = repoFor(loadConfig(vault), project);
-  if (!repo) return [];
-  const out = [];
-  for (const d of listDocs(vault)) {
-    if (!ANCHORED.includes(d.data?.type) || d.data.status !== "active" || !inProject(d, project)) continue;
-    const problems = checkAnchors(repo, d.data.anchors ?? []);
-    if (problems.length) out.push({ id: d.data.id, problems });
-  }
-  return out;
+  // A project with no repo on this device cannot be checked, so it reports nothing here.
+  return findStale(vault, project)
+    .filter((s) => !s.problems.some((p) => p.kind === "no-repo-mapped"))
+    .map(({ id, problems }) => ({ id, problems }));
 }
 
 export function sessionBrief(vault, project, { pull = null } = {}) {
@@ -127,7 +122,7 @@ export function sessionBrief(vault, project, { pull = null } = {}) {
       for (const o of w.open.slice(0, 5)) lines.push(`  - ${o}`);
     }
   } else lines.push("No open specs.");
-  for (const s of stale) lines.push(`Stale: ${s.id} (${s.problems.map((p) => `${p.kind} ${p.anchor}`).join(", ")}) - review, then \`canon verify ${s.id}\`.`);
+  for (const s of stale) lines.push(`Stale: ${s.id} (${describeProblems(s.problems)}) - review, then \`canon verify ${s.id}\`.`);
   if (findings.length) lines.push(`Doc validation: ${findings.length} finding(s). Run \`canon validate\`.`);
   return lines.join("\n");
 }
@@ -223,7 +218,7 @@ export function stopReasons(vault, project, { since = null, baseCode = null } = 
   const findings = projectFindings(vault, project);
   if (findings.length) reasons.push(`canon validate found ${findings.length} problem(s):\n${findings.slice(0, 8).map((f) => `- ${f}`).join("\n")}`);
   for (const s of staleFor(vault, project)) {
-    reasons.push(`${s.id} is stale (${s.problems.map((p) => `${p.kind} ${p.anchor}`).join(", ")}). Update the doc to match the code, then run \`canon verify ${s.id}\`.`);
+    reasons.push(`${s.id} is stale (${describeProblems(s.problems)}). Update the doc to match the code, then run \`canon verify ${s.id}\`.`);
   }
   const repo = repoFor(loadConfig(vault), project);
   const code = repo ? gitState(repo) : null;
