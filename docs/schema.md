@@ -51,6 +51,8 @@ In a spec: `- [ ] B1: statement (test: tests/X.php::name)`. States: `[ ]` todo, 
 
 In a phase: `- [[spec-id#B1]]`. The target spec and behavior must exist.
 
+A phase may carry `owns: ["src/auth/", "tests/auth/**"]` in its frontmatter: the repo paths its work may touch. Entries are directories (trailing `/`), exact files or globs (`*`, `**`). They must stay inside the repo. `canon claim` needs a non-empty `owns`.
+
 ## Anchors and staleness
 
 `canon anchor <spec> <path...>` stores a short sha256 of each governed file. `canon stale` compares those hashes to the repo. A mismatch or missing file means the spec may no longer be true. `canon stale --mark` sets `needs-review`; `canon verify <spec>` re-hashes after a human or the agent has confirmed the spec still matches.

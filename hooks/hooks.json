@@ -60,7 +60,7 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Bash|Agent|Task",
+        "matcher": "Bash|Agent|Task|Edit|Write|MultiEdit|NotebookEdit",
         "hooks": [
           {
             "type": "command",

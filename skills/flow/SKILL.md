@@ -34,3 +34,11 @@ Follow the steps in order. Scale to the size of the change, and stop at each mar
 - Never re-derive a decision that is already in a spec or ADR. Quote its id.
 - A change of direction replaces a doc: `canon supersede <old> <new>`. Never delete docs.
 - If a gate is skipped by the user, note it in the spec and continue.
+
+## Parallel work (optional)
+
+Only when `canon ready` lists several approved phases whose owned paths do not overlap. Each phase doc carries `owns:` (paths it may touch), set by a person when approving.
+
+1. `canon claim <phase-id> --agent <name>` creates a worktree and branch for the phase. Work only inside that worktree; a hook denies edits outside the owned paths.
+2. After each step `canon gate fast`; before finishing `canon gate full` and `canon check-owns <phase-id>`.
+3. A person reviews and merges the branch, then `canon complete <phase-id>` and `canon release <phase-id> --remove-worktree`.

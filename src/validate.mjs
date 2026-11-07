@@ -3,6 +3,7 @@ import { NO_CODE_SECTIONS, STATUS, TYPES, TYPE_NAMES } from "./schema.mjs";
 import { getSection, isBlank, parseBehaviors, stripComments, stripFences } from "./markdown.mjs";
 import { listDocs, projectFromPath } from "./vault.mjs";
 import { parseAnchor } from "./anchors.mjs";
+import { checkOwns } from "./packets.mjs";
 import { SCHEMA_VERSION } from "./schema.mjs";
 import { loadConfig } from "./vault.mjs";
 
@@ -67,7 +68,19 @@ export function validate(vault) {
 
     if (data.type === "spec") checkSpec(data, body, at);
     checkAnchorList(data, at);
-    if (data.type === "phase") checkPhase(body, byId, at);
+    if (data.type === "phase") {
+      checkPhase(body, byId, at);
+      if ("owns" in data) {
+        if (!Array.isArray(data.owns)) at("owns must be a list of repo paths");
+        else if (data.owns.length) {
+          try {
+            checkOwns(data.owns);
+          } catch (e) {
+            at(e.message);
+          }
+        }
+      }
+    }
     if (data.type === "lesson" && "enforced" in data && !["true", "false"].includes(data.enforced)) {
       at("enforced must be true or false");
     }

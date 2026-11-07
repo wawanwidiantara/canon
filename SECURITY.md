@@ -15,3 +15,7 @@ Please report a vulnerability privately through GitHub: **Security**, then **Rep
 ## Out of scope
 
 Vulnerabilities in Claude Code, git, Node or the optional third-party tools belong to those projects.
+
+## Phase ownership guard
+
+Inside a worktree claimed with `canon claim`, a PreToolUse hook denies Edit, Write, MultiEdit and NotebookEdit outside the phase's `owns` paths, and denies edits that reach the main checkout from the worktree. It cannot see shell writes (`sed -i`, redirects). `canon check-owns` is the backstop: it lists every changed file outside the owned paths from git, whatever made the change. A person working in the main checkout is never blocked.

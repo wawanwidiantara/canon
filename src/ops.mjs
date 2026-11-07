@@ -107,6 +107,7 @@ export function newDoc(vault, { type, project, slug, title, depends = [], stack 
       depends_on: depends.map((d) => `[[${d}]]`),
     };
     if (type === "spec") data.anchors = [];
+    if (type === "phase") data.owns = [];
     if (type === "lesson") data.enforced = "false";
 
     const body =

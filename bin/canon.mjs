@@ -37,6 +37,11 @@ const USAGE = `canon <command>
   show <id> [--section S]                  print a doc or a single section
   check [--run] [--fast] [--base B]        quality checks on changed files (lint, types, dead code, duplication, security); --run executes, capped output
   gate init | fast | full                  the repo's own gate (canon.gate.json): init writes it from existing scripts; fast/full run it, stop at the first failure
+  claim <phase-id> [--agent A] [--no-worktree]   take an approved phase: checks dependencies and owned paths, creates its git worktree
+  release <phase-id> [--remove-worktree]   give a phase back
+  ready [project]                          approved phases that can start now, and why the others cannot
+  board                                    live claims: who holds which phase, branch, behaviors done
+  check-owns <phase-id>                    files changed outside the phase's owned paths; exit 1 if any
   codegraph [project] [--setup [--yes]]    show how codegraph is set up for mapped repos; --setup plans (and with --yes applies) only the missing pieces
   approve <id>                             draft -> active, only if the doc validates as active
   complete <id>                            active -> completed; a phase or spec needs every behavior done and no stale code
@@ -171,6 +176,38 @@ async function main(argv) {
       if (typeof f.active === "string") return out(ix.listActive(vault, f.active, typeof f.type === "string" ? f.type : undefined));
       if (!pos.length) throw new Error("query needs text or one of --governs --deps --dependents --open --active");
       return out(ix.search(vault, pos.join(" "), { project, type: typeof f.type === "string" ? f.type : undefined, status: typeof f.status === "string" ? f.status : undefined, limit: Number(f.limit) || 8 }));
+    }
+    case "claim": {
+      const p = await import("../src/packets.mjs");
+      const r = p.claim(findVault(), pos[0], { agent: typeof f.agent === "string" ? f.agent : "agent", worktree: !f["no-worktree"] });
+      console.log(`claimed ${r.phaseId}\nowns: ${r.owns.join(", ")}\nbase: ${r.base_sha.slice(0, 8)}${r.worktree ? `\nbranch: ${r.branch}\nworktree: ${r.worktree}` : ""}`);
+      return;
+    }
+    case "release": {
+      const p = await import("../src/packets.mjs");
+      p.release(findVault(), pos[0], { removeWorktree: Boolean(f["remove-worktree"]) });
+      return console.log(`released ${pos[0]}`);
+    }
+    case "ready": {
+      const p = await import("../src/packets.mjs");
+      const vault = findVault();
+      const project = pos[0] ?? resolveProject(vault, process.cwd()) ?? undefined;
+      const { ready, blocked } = p.readiness(vault, project);
+      console.log(ready.length ? ready.map((r) => `ready    ${r.id}`).join("\n") : "nothing is ready");
+      for (const b of blocked) console.log(`blocked  ${b.id}: ${b.why.join("; ")}`);
+      return;
+    }
+    case "board": {
+      const p = await import("../src/packets.mjs");
+      const rows = p.board(findVault());
+      return console.log(rows.length ? rows.map((r) => `${r.id}  ${r.agent}  ${r.done}/${r.total} done  ${r.branch ?? "-"}  since ${r.claimed_at}`).join("\n") : "no live claims");
+    }
+    case "check-owns": {
+      const p = await import("../src/packets.mjs");
+      const bad = p.outsideOwns(findVault(), pos[0]);
+      if (!bad.length) return console.log("all changes are inside the owned paths");
+      console.log(`changed outside the owned paths:\n${bad.map((b) => `- ${b}`).join("\n")}`);
+      process.exit(1);
     }
     case "gate": {
       const g = await import("../src/gates.mjs");

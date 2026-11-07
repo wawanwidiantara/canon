@@ -11,5 +11,6 @@ First public version, named Canon.
 - Every read-modify-write of a doc or of the config now holds a lock, and config writes are atomic. Before, eight simultaneous `canon task done` calls kept only five updates, silently.
 - Git worktrees work: a linked worktree of a mapped repo resolves to its project, and anchors, `canon stale` and the Stop gate check that worktree instead of the main checkout. `canon map` run inside a worktree maps the main checkout.
 - `canon gate`: the repo's own definition of done in `canon.gate.json` (`fast` and `full` command lists, run as argv without a shell, stop at the first failure). `canon gate init` writes it from scripts the repo already defines. The Stop hook runs `fast` when code changed in the session.
+- Packets for parallel work: a phase can declare `owns` paths. `canon claim` takes an approved phase (refusing unfinished dependencies and overlapping paths) and creates its worktree; `canon ready`, `board`, `release` and `check-owns` complete the loop. A PreToolUse hook denies edits outside the owned paths in a claimed worktree.
 - Hooks for session start, compaction, the end of a turn, Bash calls and session end.
 - Skills: `flow`, `grilling`, `tdd`, `mutation-testing`, `quality-check`, `debug`, `retro`, `correct`, `research`, `domain-model`, `onboard`, `vault`, `handoff`, `ub-mode`, `unslop`, `untangle`.
