@@ -18,7 +18,7 @@ Every command works from anywhere inside a mapped repo or the vault. The vault i
 |---|---|
 | `canon new <type> <project> <slug> [--title T] [--depends id,id] [--stack a,b]` | Creates a doc with the id, filename, frontmatter and section headings in place. Types are listed in [schema.md](schema.md). |
 | `canon task <spec-id> <B#> <todo\|doing\|done> [--test path::name]` | Moves a behavior. `done` needs a test, and the test file must exist. |
-| `canon anchor <doc-id> <path...>` | Records the code files a spec, ADR or data model makes claims about, with a hash of each. |
+| `canon anchor <doc-id> <path...>` | Records the code files a spec, ADR or data model makes claims about, with a hash of each. Refused inside a linked worktree: anchor from the main checkout after the branch lands. |
 | `canon approve <id>` | Draft to active, only if the doc validates as active. Asks you to confirm every time. |
 | `canon complete <id>` | Active to completed. A spec or phase needs every behavior done and no stale code. |
 | `canon supersede <old-id> <new-id>` | Replaces a doc. The old one is kept for history and hidden from search. Asks you to confirm every time. |
@@ -30,7 +30,7 @@ Every command works from anywhere inside a mapped repo or the vault. The vault i
 | Command | What it does |
 |---|---|
 | `canon validate` | Checks every doc: frontmatter, ids, links, sections, behaviors, anchors. Exit 1 on findings. |
-| `canon stale [--mark]` | Lists specs, ADRs and data models whose code changed. `--mark` sets `needs-review`. |
+| `canon stale [--mark] [--diff]` | Lists specs, ADRs and data models whose code changed. `--mark` sets `needs-review`. `--diff` shows, for each stale doc, the changed lines of its anchored files since the commit it was last confirmed on, cut to 60 lines per file. |
 | `canon verify <doc-id>` | Confirms a doc matches the code, re-hashes the anchors and records the branch and commit. |
 | `canon status [project]` | Behavior progress per spec. |
 | `canon mutate [--base B] [--run]` | Picks the mutation tool for the repo, scoped to changed files. `--run` runs it and prints survivors only. |

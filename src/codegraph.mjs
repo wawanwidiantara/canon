@@ -65,7 +65,8 @@ export function plan(s) {
   if (!s.wired.length) {
     actions.push({
       what: "register the MCP server for this project only (user config, telemetry off)",
-      cmd: ["claude", "mcp", "add", "--scope", "local", "-e", "CODEGRAPH_TELEMETRY=0", "codegraph", "--", "codegraph", "serve", "--mcp"],
+      // The name goes first: -e takes any number of values, so a name after it is read as KEY=value.
+      cmd: ["claude", "mcp", "add", "codegraph", "--scope", "local", "-e", "CODEGRAPH_TELEMETRY=0", "--", "codegraph", "serve", "--mcp"],
       cwd: s.repo,
     });
   }
