@@ -176,4 +176,5 @@ test("behavior test links may contain paths", () => {
 test("init writes a .gitignore that hides the generated index", () => {
   const { vault } = fixture();
   assert.equal(fs.readFileSync(path.join(vault, ".gitignore"), "utf8"), ".canon/\n");
+  assert.equal(fs.readFileSync(path.join(vault, ".gitattributes"), "utf8"), "* text=auto eol=lf\n");
 });
