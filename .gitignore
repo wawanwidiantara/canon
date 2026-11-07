@@ -6,3 +6,8 @@ node_modules/
 # local only: source material and personal notes
 reference/
 .private/
+
+# local secrets: never commit
+.env
+.env.*
+!.env.example
