@@ -1,7 +1,8 @@
 # Changelog
 
-## 0.1.8 (unreleased)
+## 0.1.8
 
+- Fix: the vault lock now retries on the `EPERM` Windows reports while a lock directory is being deleted; under eight parallel writers one used to fail.
 - `canon land`: one scripted path from a finished branch to main. Gate files may list `regen` commands that rebuild generated files after the rebase.
 
 ## 0.1.7
