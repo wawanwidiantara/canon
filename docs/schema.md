@@ -27,7 +27,7 @@ Required on every doc: `id`, `type`, `project`, `stack` (array), `status`, `depe
 - `status`: `draft`, `active`, `needs-review`, `superseded`, `completed`.
   - `needs-review` is set by `canon stale --mark` when anchored code changed. Re-confirm with `canon verify`.
   - `superseded` needs `superseded_by: <id>`.
-- spec adds `anchors: ["path/in/repo@<12 hex>"]`.
+- spec, adr and data-model docs may carry `anchors: ["path/in/repo@<12 hex>"]`. A spec gets an empty list from `canon new`; the other two get one on the first `canon anchor`.
 - lesson adds `enforced: true|false`.
 
 ## Required sections (`## Heading`)

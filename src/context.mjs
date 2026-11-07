@@ -5,6 +5,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { parseBehaviors } from "./markdown.mjs";
+import { ANCHORED } from "./schema.mjs";
 import { validate } from "./validate.mjs";
 import { deviceVault, listDocs, loadConfig, loadLocal, saveLocal } from "./vault.mjs";
 import { gitTop, normalizeRemote, originOf } from "./remote.mjs";
@@ -85,7 +86,7 @@ export function staleFor(vault, project) {
   if (!repo) return [];
   const out = [];
   for (const d of listDocs(vault)) {
-    if (d.data?.type !== "spec" || d.data.status !== "active" || !inProject(d, project)) continue;
+    if (!ANCHORED.includes(d.data?.type) || d.data.status !== "active" || !inProject(d, project)) continue;
     const problems = checkAnchors(repo, d.data.anchors ?? []);
     if (problems.length) out.push({ id: d.data.id, problems });
   }
@@ -214,7 +215,7 @@ export function stopReasons(vault, project, { since = null, baseCode = null } = 
   const findings = projectFindings(vault, project);
   if (findings.length) reasons.push(`canon validate found ${findings.length} problem(s):\n${findings.slice(0, 8).map((f) => `- ${f}`).join("\n")}`);
   for (const s of staleFor(vault, project)) {
-    reasons.push(`Spec ${s.id} is stale (${s.problems.map((p) => `${p.kind} ${p.anchor}`).join(", ")}). Update the spec to match the code, then run \`canon verify ${s.id}\`.`);
+    reasons.push(`${s.id} is stale (${s.problems.map((p) => `${p.kind} ${p.anchor}`).join(", ")}). Update the doc to match the code, then run \`canon verify ${s.id}\`.`);
   }
   const repo = repoFor(loadConfig(vault), project);
   const code = repo ? gitState(repo) : null;

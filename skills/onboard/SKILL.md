@@ -14,16 +14,18 @@ An existing repo has behavior but no specs, so the stale check and the flow have
 
 ## Steps (one per sitting; stop and let the user review after each)
 
-1. **Context.** `canon new context <project> project-brief`. Fill Summary from what the code and README show: what it is, who uses it, the stack, how to run and test it. State only what you verified; mark guesses as "unverified".
+1. **Context.** `canon new context <project> project-brief --title "Project brief" --stack <stacks>`, where the stacks are the real ones (for example `laravel,vue`). Use the same `--stack` on every doc you create here, so the frontmatter agrees with the prose. Fill Summary from what the code and README show: what it is, who uses it, the stack, how to run and test it. State only what you verified; mark guesses as "unverified".
 2. **Glossary.** Use the `domain-model` skill. List the 10 to 20 domain terms the code uses, one line each. Ask the user about any term whose meaning you cannot tell from the code.
 3. **Data model.** `canon new data-model <project> schema`. Summarize tables, key fields and relations as they exist in migrations or models. No code, no file paths.
-4. **Decisions that already exist.** Offer ADRs only for decisions that are hard to reverse and visible in the code (framework, database, auth scheme, queue). Ask the user for the reason; never invent one. Use `canon new adr` and say in Context that it was recorded after the fact.
+4. **Decisions that already exist.** Offer ADRs only for decisions that are hard to reverse and visible in the code (framework, database, auth scheme, queue). Ask the user for the reason; never invent one. Use `canon new adr <project> <slug> --title "<Proper title>"`, and anchor the files its claims rest on with `canon anchor <adr-id> <path...>` so `canon stale` notices when they change. State once, in the project brief, that the docs were recorded after the fact; do not repeat it in each ADR.
 5. **First specs, for the riskiest areas only.** Ask which two or three areas change most or break most. For each: `canon new spec`, behaviors as short testable sentences describing what the system does today, then `canon anchor <spec-id> <files>` for the code that implements them. Mark a behavior done only if a real test proves it (`canon task ... done --test`); otherwise leave it todo, which becomes the test backlog.
 
 ## Rules
 
 - **Search before you ask or write "unverified".** If the answer is in the repo (code, migrations, config, seeders, tests, routes, the git log), find it: use the code graph, grep, and follow a name from where it is read to where it is defined. Ask the user only for what the code cannot show: the reason for a decision, intent, business rules, or something outside the repo. Mark a claim "unverified" only after a real search failed, and say what you searched. When you resolve an item, delete its "unverified" line; never leave both.
 - Describe what the code does, not what it should do. Disagreements between code and the user's memory go to the user as questions.
+- Always pass `--title`; the default is the slug, which loses acronyms and capitals ("Ai openrouter driver"). Fill `depends_on` with the ids of docs it builds on (`--depends`), for example a data model depends on the glossary.
+- Record facts, not where you read them. Do not mention the earlier reference docs you consulted, and keep plans, proposals and roadmap items out of ADRs; they belong in a phase or backlog doc.
 - Keep each doc short. A thin accurate doc beats a long guess.
 - After each step: `canon validate`, then `canon approve` only when the user agrees.
 - Do not run mutation testing or quality checks here; that is for after the specs have tests.

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { addAnchors, approve, complete, enforce, init, mapProject, newDoc, setTask, supersede, verifySpec } from "../src/ops.mjs";
+import { addAnchors, approve, complete, enforce, findStale, init, mapProject, newDoc, setTask, supersede, verifySpec } from "../src/ops.mjs";
 import { validate } from "../src/validate.mjs";
 
 function setup() {
@@ -98,4 +98,21 @@ test("enforce a lesson only when Prevention is filled", () => {
   enforce(vault, l.id);
   assert.match(fs.readFileSync(l.file, "utf8"), /enforced: true/);
   assert.throws(() => enforce(vault, "demo-spec-001-nope"), /no doc/);
+});
+
+test("an adr can be anchored, goes stale when its code changes, and verify clears it", () => {
+  const { vault, repo } = setup();
+  const a = newDoc(vault, { type: "adr", project: "demo", slug: "pick-queue", title: "Pick a queue" });
+  fill(a.file, { Context: "c", Decision: "We will use the database queue.", Consequences: "q" });
+  approve(vault, a.id);
+  addAnchors(vault, a.id, ["src/a.php"]);
+  assert.match(fs.readFileSync(a.file, "utf8"), /anchors: \["src\/a\.php@[0-9a-f]{12}"\]/);
+  assert.deepEqual(validate(vault), []);
+  assert.deepEqual(findStale(vault), []);
+  fs.writeFileSync(path.join(repo, "src/a.php"), "v2");
+  assert.equal(findStale(vault)[0].id, a.id);
+  verifySpec(vault, a.id);
+  assert.deepEqual(findStale(vault), []);
+  const rule = newDoc(vault, { type: "lesson", project: "demo", slug: "l" });
+  assert.throws(() => addAnchors(vault, rule.id, ["src/a.php"]), /only spec, adr, data-model/);
 });

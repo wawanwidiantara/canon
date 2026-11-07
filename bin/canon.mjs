@@ -21,9 +21,9 @@ const USAGE = `canon <command>
   new <type> <project> <slug> [--title T] [--depends id,id] [--stack a,b]
   validate                                 check every doc; exit 1 on findings
   task <spec-id> <B#> <todo|doing|done> [--test path::name]
-  anchor <spec-id> <path...>               record code files a spec governs
+  anchor <doc-id> <path...>                record code files a spec, adr or data-model claims about
   stale [--mark]                           list specs whose code changed; --mark sets needs-review
-  verify <spec-id>                         confirm spec matches code, re-hash anchors
+  verify <doc-id>                          confirm the doc matches code, re-hash anchors
   status [project]                         behavior progress per spec
   mutate [--base B] [--run]                mutation tool for this repo scoped to changed files; --run executes, prints survivors only
   digest <transcript.jsonl> [--project P]  summarize a session (saved to the vault if --project given)
@@ -92,7 +92,9 @@ async function main(argv) {
     case "new": {
       const [type, project, slug] = pos;
       const r = newDoc(findVault(), { type, project, slug, title: f.title, depends: list(f.depends), stack: list(f.stack) });
-      return console.log(r.file);
+      console.log(r.file);
+      if (!f.title) console.log(`note: the heading defaults to the slug ("${r.heading}"); pass --title "..." to set it`);
+      return;
     }
     case "validate": {
       const findings = validate(findVault());

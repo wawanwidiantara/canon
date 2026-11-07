@@ -66,6 +66,7 @@ export function validate(vault) {
     if (data.superseded_by && !byId.has(data.superseded_by)) at(`superseded_by '${data.superseded_by}' does not resolve`);
 
     if (data.type === "spec") checkSpec(data, body, at);
+    checkAnchorList(data, at);
     if (data.type === "phase") checkPhase(body, byId, at);
     if (data.type === "lesson" && "enforced" in data && !["true", "false"].includes(data.enforced)) {
       at("enforced must be true or false");
@@ -102,8 +103,12 @@ function checkSpec(data, body, at) {
     if (b.state === "done" && !b.test) at(`behavior ${b.id} is done but has no (test: ...)`);
   }
   if (["active", "completed"].includes(data.status) && items.length === 0) at("active spec needs at least one behavior");
-  for (const a of data.anchors ?? []) if (!parseAnchor(a)) at(`malformed anchor '${a}' (want path@12hex)`);
-  if ("anchors" in data && !Array.isArray(data.anchors)) at("anchors must be an array");
+}
+
+function checkAnchorList(data, at) {
+  if (!("anchors" in data)) return;
+  if (!Array.isArray(data.anchors)) return at("anchors must be an array");
+  for (const a of data.anchors) if (!parseAnchor(a)) at(`malformed anchor '${a}' (want path@12hex)`);
 }
 
 function checkPhase(body, byId, at) {

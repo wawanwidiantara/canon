@@ -15,7 +15,7 @@ Docs live in the central vault, not in the app repo. The session-start message n
 
 ## Rules
 
-- Create docs only with `canon new <type> <project> <slug>`. It sets the id, filename, frontmatter and section headings. Never hand-write frontmatter or rename files.
+- Create docs only with `canon new <type> <project> <slug> --title "..." --stack a,b`. Always pass the title (the default is the slug) and the project's real stack, so frontmatter and prose agree. It sets the id, filename, frontmatter and section headings. Never hand-write frontmatter or rename files.
 - Fill each section under its heading. The comment under each heading says what belongs there. Delete the comment once the section is filled.
 - Specs and their sections `Goal`, `Implementation Decisions`, `Testing Decisions`, `Non-goals` are prose. No file paths and no code. Put governed files in anchors: `canon anchor <spec-id> <path...>`.
 - Behaviors are one line each: `- [ ] B1: statement`. Mark progress with `canon task <spec-id> B1 doing|done --test path::name`. A behavior is done only when its test passes.

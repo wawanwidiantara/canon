@@ -4,7 +4,7 @@ import path from "node:path";
 import { stringify } from "./frontmatter.mjs";
 import { writeAtomic, withLock } from "./fsx.mjs";
 import { canonical, isReservedName } from "./platform.mjs";
-import { SLUG_RE, TYPES } from "./schema.mjs";
+import { ANCHORED, SLUG_RE, TYPES } from "./schema.mjs";
 import { getSection, isBlank, parseBehaviors, stripComments, updateBehavior } from "./markdown.mjs";
 import { validate } from "./validate.mjs";
 import { anchorFor, checkAnchors, repoFor } from "./anchors.mjs";
@@ -107,7 +107,7 @@ export function newDoc(vault, { type, project, slug, title, depends = [], stack 
       def.sections.map(([h, hint]) => `## ${h}\n\n<!-- ${hint} -->\n`).join("\n");
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(file, stringify(data, body), { flag: "wx" });
-    return { id, file };
+    return { id, file, heading: title ?? titleCase(slug) };
   }
 }
 
@@ -138,9 +138,9 @@ export function setTask(vault, specId, bid, state, test) {
   write(doc, doc.data, updateBehavior(doc.body, bid, { state, test }));
 }
 
-export function addAnchors(vault, specId, relPaths) {
-  const doc = mustDoc(vault, specId);
-  if (doc.data.type !== "spec") throw new Error(`${specId} is not a spec`);
+export function addAnchors(vault, docId, relPaths) {
+  const doc = mustDoc(vault, docId);
+  if (!ANCHORED.includes(doc.data.type)) throw new Error(`${docId} is a ${doc.data.type}; only ${ANCHORED.join(", ")} docs take anchors`);
   const repo = repoFor(loadConfig(vault), doc.data.project);
   if (!repo) throw new Error(`project '${doc.data.project}' has no repo mapped; run \`canon map\``);
   const current = new Map((doc.data.anchors ?? []).map((a) => [a.slice(0, a.lastIndexOf("@")), a]));
@@ -166,7 +166,7 @@ export function findStale(vault) {
   const config = loadConfig(vault);
   const out = [];
   for (const d of listDocs(vault)) {
-    if (d.data?.type !== "spec" || d.data.status !== "active") continue;
+    if (!ANCHORED.includes(d.data?.type) || d.data.status !== "active") continue;
     const anchors = d.data.anchors ?? [];
     if (!anchors.length) continue;
     const repo = repoFor(config, d.data.project);

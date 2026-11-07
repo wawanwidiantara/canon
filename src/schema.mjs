@@ -81,5 +81,9 @@ export const TYPES = {
 // Paths belong in frontmatter `anchors`, which `canon stale` checks.
 export const NO_CODE_SECTIONS = ["Goal", "Implementation Decisions", "Testing Decisions", "Non-goals"];
 
+// Doc types that make claims about code, so they may carry `anchors` and go
+// stale when that code changes.
+export const ANCHORED = ["spec", "adr", "data-model"];
+
 export const TYPE_NAMES = Object.keys(TYPES);
 export const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
