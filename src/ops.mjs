@@ -6,6 +6,7 @@ import { writeAtomic, withLock } from "./fsx.mjs";
 import { canonical, isReservedName } from "./platform.mjs";
 import { ANCHORED, SLUG_RE, TYPES } from "./schema.mjs";
 import { getSection, isBlank, parseBehaviors, stripComments, updateBehavior } from "./markdown.mjs";
+import { AGENTS } from "./gate.mjs";
 import { validate } from "./validate.mjs";
 import { anchorFor, checkAnchors, describeProblems, inWorktree, repoFor } from "./anchors.mjs";
 import { findDoc, listDocs, loadConfig, lockVault, saveConfig } from "./vault.mjs";
@@ -54,7 +55,7 @@ export function init(vault, { git = true } = {}) {
   // Pin line endings so a Windows checkout does not rewrite every doc (and every hash).
   const attrs = path.join(vault, ".gitattributes");
   if (!fs.existsSync(attrs)) fs.writeFileSync(attrs, "* text=auto eol=lf\n");
-  if (!fs.existsSync(cfg)) fs.writeFileSync(cfg, JSON.stringify({ schema_version: 1, projects: {}, sync: { pullOnStart: true, digests: false }, ratify: "ask", agents: { reviewer: false, researcher: false, "spec-reviewer": false } }, null, 2) + "\n");
+  if (!fs.existsSync(cfg)) fs.writeFileSync(cfg, JSON.stringify({ schema_version: 1, projects: {}, sync: { pullOnStart: true, digests: false }, ratify: "ask", agents: Object.fromEntries(AGENTS.map((a) => [a, false])) }, null, 2) + "\n");
 }
 
 // Maps a project to a repo on this device. The repo's git remote is recorded in

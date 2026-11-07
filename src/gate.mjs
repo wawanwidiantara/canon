@@ -64,7 +64,9 @@ export function ratificationPrompt(config, project, command, typeOf = () => null
 }
 
 // Opt-in subagents. They cost extra tokens, so the plugin's agents are blocked
-// unless canon.config.json enables them: "agents": { "reviewer": true, "researcher": true }.
+// unless canon.config.json enables them, for example "agents": { "reviewer": true }.
+// This list is the only place the names are written: a new vault's config is built
+// from it, and a test checks it against the files in agents/.
 export const AGENTS = ["reviewer", "researcher", "spec-reviewer"];
 
 export function agentDenial(config, subagentType) {
