@@ -224,3 +224,15 @@ test("the CLI finds the vault from any folder once `canon setup` has run", () =>
   assert.doesNotMatch(out.stderr, /no vault found/);
   assert.equal(run(vault).status, 0); // inside a vault, that vault wins
 });
+
+test("sync names an unreachable remote instead of calling it a conflict", () => {
+  const root = tmp();
+  const vault = path.join(root, "vault");
+  init(vault);
+  git(vault, "config", "user.email", "t@t");
+  git(vault, "config", "user.name", "t");
+  git(vault, "remote", "add", "origin", path.join(root, "no-such-remote"));
+  fs.writeFileSync(path.join(vault, "note.txt"), "x\n");
+  assert.throws(() => syncVault(vault), /could not reach the remote[\s\S]*safe, committed locally[\s\S]*SSH host/);
+  assert.equal(git(vault, "status", "--porcelain").trim(), "");
+});

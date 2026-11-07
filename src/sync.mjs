@@ -51,6 +51,9 @@ export function pullIfDue(vault, { minutes = 10 } = {}) {
 }
 
 // Commit local changes, rebase onto the remote, push. Stops on any conflict.
+// git's wording when it cannot talk to the remote at all (auth, DNS, timeout), as opposed to a merge conflict.
+const UNREACHABLE = /permission denied|could not read from remote|could not resolve host|unable to access|connection (timed out|refused)|does not appear to be a git repository|authentication failed/i;
+
 export function syncVault(vault, { push = true, message } = {}) {
   const log = [];
   const s = vaultState(vault);
@@ -69,12 +72,18 @@ export function syncVault(vault, { push = true, message } = {}) {
   const pull = run(vault, ["pull", "--rebase", "--quiet"], { net: true, timeout: 60000 });
   if (!pull.ok) {
     run(vault, ["rebase", "--abort"]);
-    throw new Error(`pull found a conflict or failed, rebase aborted (your changes are safe, committed locally):\n${pull.err}\nResolve in the vault with git, then rerun \`canon sync\`.`);
+    if (UNREACHABLE.test(pull.err)) {
+      throw new Error(`could not reach the remote (your changes are safe, committed locally):\n${pull.err}\nCheck \`git -C "${vault}" remote -v\`: the URL's SSH host must have a key on this machine, for example an alias from ~/.ssh/config. Then rerun \`canon sync\`.`);
+    }
+    throw new Error(`pull found a conflict, rebase aborted (your changes are safe, committed locally):\n${pull.err}\nResolve in the vault with git, then rerun \`canon sync\`.`);
   }
   log.push("pulled");
   if (push) {
     const p = run(vault, ["push", "--quiet"], { net: true, timeout: 60000 });
-    if (!p.ok) throw new Error(`push failed: ${p.err}`);
+    if (!p.ok) {
+      const hint = UNREACHABLE.test(p.err) ? ` Check \`git -C "${vault}" remote -v\` and your SSH key.` : "";
+      throw new Error(`push failed: ${p.err}${hint}`);
+    }
     log.push("pushed");
   }
   return log;

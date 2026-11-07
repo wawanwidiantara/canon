@@ -1,7 +1,7 @@
 {
   "name": "canon",
   "displayName": "Canon",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Canon: what your project has decided, kept true to the code. Specs and decisions in one private vault, hooks that keep docs in step with code, and a spec-first, test-first flow for Claude Code.",
   "author": {
     "name": "I Gede Widiantara",
