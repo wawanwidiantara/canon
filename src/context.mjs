@@ -7,7 +7,7 @@ import path from "node:path";
 import { parseBehaviors } from "./markdown.mjs";
 import { ANCHORED } from "./schema.mjs";
 import { validate } from "./validate.mjs";
-import { deviceVault, listDocs, loadConfig, loadLocal, saveLocal } from "./vault.mjs";
+import { deviceVault, listDocs, loadConfig, loadLocal, lockVault, saveLocal } from "./vault.mjs";
 import { gitTop, normalizeRemote, originOf } from "./remote.mjs";
 import { pullIfDue, syncSettings, vaultState } from "./sync.mjs";
 import { checkAnchors, repoFor } from "./anchors.mjs";
@@ -50,10 +50,12 @@ export function resolveProject(vault, cwd) {
   if (!slug) return null;
   const current = config.projects[slug].repo;
   if (current && fs.existsSync(current)) return null;
-  const local = loadLocal(vault);
-  local.projects ??= {};
-  local.projects[slug] = { ...local.projects[slug], repo: canonical(top) };
-  saveLocal(vault, local);
+  lockVault(vault, "config", () => {
+    const local = loadLocal(vault);
+    local.projects ??= {};
+    local.projects[slug] = { ...local.projects[slug], repo: canonical(top) };
+    saveLocal(vault, local);
+  });
   return slug;
 }
 

@@ -8,7 +8,7 @@ import { ANCHORED, SLUG_RE, TYPES } from "./schema.mjs";
 import { getSection, isBlank, parseBehaviors, stripComments, updateBehavior } from "./markdown.mjs";
 import { validate } from "./validate.mjs";
 import { anchorFor, checkAnchors, repoFor } from "./anchors.mjs";
-import { findDoc, listDocs, loadConfig, saveConfig } from "./vault.mjs";
+import { findDoc, listDocs, loadConfig, lockVault, saveConfig } from "./vault.mjs";
 import { normalizeRemote, originOf } from "./remote.mjs";
 
 const titleCase = (slug) => slug.replace(/-/g, " ").replace(/^./, (c) => c.toUpperCase());
@@ -61,15 +61,17 @@ export function init(vault, { git = true } = {}) {
 // the shared config, so other devices recognize the same repo without mapping.
 export function mapProject(vault, slug, repo, { remote } = {}) {
   if (!SLUG_RE.test(slug)) throw new Error(`bad project slug '${slug}'`);
-  const config = loadConfig(vault);
-  config.projects ??= {};
-  const abs = canonical(repo);
-  const found = remote ?? originOf(abs);
-  config.projects[slug] = { ...config.projects[slug], repo: abs };
-  const norm = normalizeRemote(found);
-  if (norm) config.projects[slug].remote = norm;
-  saveConfig(vault, config);
-  return norm;
+  return lockVault(vault, "config", () => {
+    const config = loadConfig(vault);
+    config.projects ??= {};
+    const abs = canonical(repo);
+    const found = remote ?? originOf(abs);
+    config.projects[slug] = { ...config.projects[slug], repo: abs };
+    const norm = normalizeRemote(found);
+    if (norm) config.projects[slug].remote = norm;
+    saveConfig(vault, config);
+    return norm;
+  });
 }
 
 // Creates a doc from the schema. Returns { id, file }.
@@ -125,6 +127,10 @@ function write(doc, data, body) {
 }
 
 export function setTask(vault, specId, bid, state, test) {
+  return lockVault(vault, `doc-${specId}`, () => setTaskLocked(vault, specId, bid, state, test));
+}
+
+function setTaskLocked(vault, specId, bid, state, test) {
   const doc = mustDoc(vault, specId);
   if (doc.data.type !== "spec") throw new Error(`${specId} is not a spec`);
   const b = parseBehaviors(doc.body).items.find((x) => x.id === bid);
@@ -142,6 +148,10 @@ export function setTask(vault, specId, bid, state, test) {
 }
 
 export function addAnchors(vault, docId, relPaths) {
+  return lockVault(vault, `doc-${docId}`, () => addAnchorsLocked(vault, docId, relPaths));
+}
+
+function addAnchorsLocked(vault, docId, relPaths) {
   const doc = mustDoc(vault, docId);
   if (!ANCHORED.includes(doc.data.type)) throw new Error(`${docId} is a ${doc.data.type}; only ${ANCHORED.join(", ")} docs take anchors`);
   const repo = repoFor(loadConfig(vault), doc.data.project);
@@ -186,14 +196,20 @@ export function findStale(vault) {
 export function markStale(vault) {
   const stale = findStale(vault);
   for (const s of stale) {
-    const doc = mustDoc(vault, s.id);
-    write(doc, { ...doc.data, status: "needs-review" }, doc.body);
+    lockVault(vault, `doc-${s.id}`, () => {
+      const doc = mustDoc(vault, s.id);
+      write(doc, { ...doc.data, status: "needs-review" }, doc.body);
+    });
   }
   return stale;
 }
 
 // Human confirms the spec still matches the code: re-hash and reactivate.
 export function verifySpec(vault, specId) {
+  return lockVault(vault, `doc-${specId}`, () => verifySpecLocked(vault, specId));
+}
+
+function verifySpecLocked(vault, specId) {
   const doc = mustDoc(vault, specId);
   const repo = repoFor(loadConfig(vault), doc.data.project);
   if (!repo) throw new Error(`project '${doc.data.project}' has no repo mapped`);
@@ -215,6 +231,10 @@ const findingsFor = (vault, doc) => validate(vault).filter((f) => f.startsWith(`
 // draft -> active. The doc must pass validation as an active doc, otherwise it
 // is left as a draft.
 export function approve(vault, id) {
+  return lockVault(vault, `doc-${id}`, () => approveLocked(vault, id));
+}
+
+function approveLocked(vault, id) {
   const doc = mustDoc(vault, id);
   if (doc.data.status !== "draft") throw new Error(`${id} is ${doc.data.status}, only drafts can be approved`);
   write(doc, { ...doc.data, status: "active" }, doc.body);
@@ -239,6 +259,10 @@ function specProblems(vault, specId) {
 //  spec:  every behavior is done and the spec is not stale
 //  other: just needs to validate
 export function complete(vault, id) {
+  return lockVault(vault, `doc-${id}`, () => completeLocked(vault, id));
+}
+
+function completeLocked(vault, id) {
   const doc = mustDoc(vault, id);
   if (!["active", "needs-review"].includes(doc.data.status)) throw new Error(`${id} is ${doc.data.status}; only active docs can be completed`);
   const problems = [];
@@ -275,6 +299,12 @@ export function complete(vault, id) {
 // Replace a doc with another instead of deleting or archiving it.
 export function supersede(vault, oldId, newId) {
   if (oldId === newId) throw new Error("a doc cannot supersede itself");
+  const [a, b] = [oldId, newId].sort();
+  return lockVault(vault, `doc-${a}`, () => lockVault(vault, `doc-${b}`, () => supersedeLocked(vault, oldId, newId)));
+}
+
+function supersedeLocked(vault, oldId, newId) {
+  if (oldId === newId) throw new Error("a doc cannot supersede itself");
   const oldDoc = mustDoc(vault, oldId);
   const newDoc_ = mustDoc(vault, newId);
   if (oldDoc.data.project !== newDoc_.data.project) throw new Error("both docs must belong to the same project");
@@ -285,6 +315,10 @@ export function supersede(vault, oldId, newId) {
 
 // Mark a lesson as enforced once a check exists that prevents the mistake.
 export function enforce(vault, lessonId) {
+  return lockVault(vault, `doc-${lessonId}`, () => enforceLocked(vault, lessonId));
+}
+
+function enforceLocked(vault, lessonId) {
   const doc = mustDoc(vault, lessonId);
   if (doc.data.type !== "lesson") throw new Error(`${lessonId} is not a lesson`);
   if (isBlank(getSection(doc.body, "Prevention") ?? "")) throw new Error("fill the Prevention section with the check that now exists before enforcing");

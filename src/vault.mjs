@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { writeAtomic, withLock } from "./fsx.mjs";
 import { configDir } from "./platform.mjs";
 import { parse } from "./frontmatter.mjs";
 
@@ -46,7 +47,7 @@ export function loadLocal(vault) {
 
 export function saveLocal(vault, local) {
   fs.mkdirSync(path.dirname(localFile(vault)), { recursive: true });
-  fs.writeFileSync(localFile(vault), JSON.stringify(local, null, 2) + "\n");
+  writeAtomic(localFile(vault), JSON.stringify(local, null, 2) + "\n");
 }
 
 // Shared config with this device's repo paths merged in as `projects.<slug>.repo`.
@@ -71,7 +72,14 @@ export function saveConfig(vault, config) {
     }
   }
   saveLocal(vault, local);
-  fs.writeFileSync(path.join(vault, "canon.config.json"), JSON.stringify(shared, null, 2) + "\n");
+  writeAtomic(path.join(vault, "canon.config.json"), JSON.stringify(shared, null, 2) + "\n");
+}
+
+// Run fn while holding a named lock on the vault. Every read-modify-write of a
+// doc or of the config goes through this, so two sessions or hooks cannot each
+// read the old text and then overwrite the other's change.
+export function lockVault(vault, name, fn) {
+  return withLock(path.join(vault, ".canon", "locks", `rmw-${name}`.replace(/[^\w-]/g, "_")), fn);
 }
 
 function walk(dir, out) {

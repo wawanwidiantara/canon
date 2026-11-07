@@ -111,3 +111,53 @@ test("verify records branch@commit and stale says when the branch changed", () =
   verifySpec(vault, s.id);
   assert.match(fs.readFileSync(s.file, "utf8"), /verified_at: feature@/);
 });
+
+// A read-modify-write without a lock loses updates silently: 8 parallel
+// `canon task ... done` once kept only 5 of 8.
+test("eight simultaneous `canon task done` calls all land", async () => {
+  const root = tmp();
+  const vault = path.join(root, "vault");
+  const repo = path.join(root, "repo");
+  fs.mkdirSync(repo);
+  for (let i = 1; i <= 8; i++) fs.writeFileSync(path.join(repo, `t${i}.test`), "t");
+  init(vault, { git: false });
+  mapProject(vault, "demo", repo);
+  const s = newDoc(vault, { type: "spec", project: "demo", slug: "par" });
+  const behaviors = Array.from({ length: 8 }, (_, i) => `- [ ] B${i + 1}: behavior ${i + 1}`).join("\n");
+  fs.writeFileSync(s.file, fs.readFileSync(s.file, "utf8").replace(/## Behaviors\n\n<!--.*?-->/s, `## Behaviors\n\n${behaviors}`));
+  const runs = Array.from({ length: 8 }, (_, i) =>
+    new Promise((resolve) => {
+      const p = spawn("node", [path.join(ROOT, "bin/canon.mjs"), "task", s.id, `B${i + 1}`, "done", "--test", `t${i + 1}.test`], { env: { ...process.env, CANON_VAULT: vault } });
+      let err = "";
+      p.stderr.on("data", (d) => (err += d));
+      p.on("close", (code) => resolve({ code, err }));
+    }),
+  );
+  const results = await Promise.all(runs);
+  assert.ok(results.every((r) => r.code === 0), JSON.stringify(results));
+  const done = fs.readFileSync(s.file, "utf8").split("\n").filter((l) => l.startsWith("- [x]"));
+  assert.equal(done.length, 8);
+});
+
+test("parallel `canon map` calls keep every project", async () => {
+  const root = tmp();
+  const vault = path.join(root, "vault");
+  init(vault, { git: false });
+  const repos = Array.from({ length: 6 }, (_, i) => {
+    const r = path.join(root, `r${i}`);
+    fs.mkdirSync(r);
+    return r;
+  });
+  const runs = repos.map(
+    (r, i) =>
+      new Promise((resolve) => {
+        const p = spawn("node", [path.join(ROOT, "bin/canon.mjs"), "map", `proj-${i}`, r], { env: { ...process.env, CANON_VAULT: vault } });
+        p.on("close", resolve);
+      }),
+  );
+  assert.ok((await Promise.all(runs)).every((c) => c === 0));
+  const cfg = JSON.parse(fs.readFileSync(path.join(vault, "canon.config.json"), "utf8"));
+  const local = JSON.parse(fs.readFileSync(path.join(vault, ".canon/local.json"), "utf8"));
+  assert.equal(Object.keys(cfg.projects).length, 6);
+  assert.equal(Object.keys(local.projects).length, 6);
+});
