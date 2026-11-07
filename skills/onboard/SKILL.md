@@ -22,6 +22,7 @@ An existing repo has behavior but no specs, so the stale check and the flow have
 
 ## Rules
 
+- **Search before you ask or write "unverified".** If the answer is in the repo (code, migrations, config, seeders, tests, routes, the git log), find it: use the code graph, grep, and follow a name from where it is read to where it is defined. Ask the user only for what the code cannot show: the reason for a decision, intent, business rules, or something outside the repo. Mark a claim "unverified" only after a real search failed, and say what you searched. When you resolve an item, delete its "unverified" line; never leave both.
 - Describe what the code does, not what it should do. Disagreements between code and the user's memory go to the user as questions.
 - Keep each doc short. A thin accurate doc beats a long guess.
 - After each step: `canon validate`, then `canon approve` only when the user agrees.
