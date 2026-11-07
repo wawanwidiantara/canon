@@ -15,6 +15,8 @@ export function target(input) {
   try {
     const vault = resolveVault();
     if (!vault || !fs.existsSync(vault)) return null;
+    // Repo lookups default to the process cwd; make that the session's cwd.
+    if (input.cwd && fs.existsSync(input.cwd)) process.chdir(input.cwd);
     const project = resolveProject(vault, input.cwd ?? process.cwd());
     return project ? { vault, project } : null;
   } catch {

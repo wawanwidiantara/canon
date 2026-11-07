@@ -10,7 +10,7 @@ import { validate } from "./validate.mjs";
 import { deviceVault, listDocs, loadConfig, loadLocal, lockVault, saveLocal } from "./vault.mjs";
 import { gitTop, normalizeRemote, originOf } from "./remote.mjs";
 import { pullIfDue, syncSettings, vaultState } from "./sync.mjs";
-import { checkAnchors, repoFor } from "./anchors.mjs";
+import { checkAnchors, repoFor, worktreeOf } from "./anchors.mjs";
 import { canonical, configDir, isWithin } from "./platform.mjs";
 import { inspect as cgInspect } from "./codegraph.mjs";
 import { formatResults, planChecks, runChecks } from "./check.mjs";
@@ -33,7 +33,12 @@ export function projectForCwd(config, cwd) {
       best = { slug, len: repo.length };
     }
   }
-  return best?.slug ?? null;
+  if (best) return best.slug;
+  // Not under a mapped path: a linked worktree of a mapped repo still belongs to it.
+  for (const [slug, p] of Object.entries(config.projects ?? {})) {
+    if (p.repo && worktreeOf(p.repo, cwd)) return slug;
+  }
+  return null;
 }
 
 // Which project is this directory in? Path first; otherwise by git remote, which

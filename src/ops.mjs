@@ -9,7 +9,7 @@ import { getSection, isBlank, parseBehaviors, stripComments, updateBehavior } fr
 import { validate } from "./validate.mjs";
 import { anchorFor, checkAnchors, repoFor } from "./anchors.mjs";
 import { findDoc, listDocs, loadConfig, lockVault, saveConfig } from "./vault.mjs";
-import { normalizeRemote, originOf } from "./remote.mjs";
+import { gitCommonDir, normalizeRemote, originOf } from "./remote.mjs";
 
 const titleCase = (slug) => slug.replace(/-/g, " ").replace(/^./, (c) => c.toUpperCase());
 
@@ -64,7 +64,9 @@ export function mapProject(vault, slug, repo, { remote } = {}) {
   return lockVault(vault, "config", () => {
     const config = loadConfig(vault);
     config.projects ??= {};
-    const abs = canonical(repo);
+    // Mapped from inside a linked worktree: map the main checkout, not the worktree.
+    const common = gitCommonDir(canonical(repo));
+    const abs = common && path.basename(common) === ".git" ? canonical(path.dirname(common)) : canonical(repo);
     const found = remote ?? originOf(abs);
     config.projects[slug] = { ...config.projects[slug], repo: abs };
     const norm = normalizeRemote(found);

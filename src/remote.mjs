@@ -1,5 +1,7 @@
 // Identify a repo across devices by its git remote, not by a local path.
 import { execFileSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
 
 // "git@github.com-personal:Owner/Repo.git", "https://github.com/owner/repo", "ssh://git@host/owner/repo.git"
 // all reduce to "github.com/owner/repo". SSH host aliases like "github.com-personal" fold to the real host.
@@ -34,4 +36,9 @@ const git = (dir, args) => {
 };
 
 export const gitTop = (dir) => git(dir, ["rev-parse", "--show-toplevel"]);
+// The shared .git directory: the same for a repo and every linked worktree of it.
+export function gitCommonDir(dir) {
+  const out = git(dir, ["rev-parse", "--git-common-dir"]);
+  return out ? fs.realpathSync.native(path.resolve(dir, out)) : null;
+}
 export const originOf = (dir) => git(dir, ["remote", "get-url", "origin"]);

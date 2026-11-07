@@ -1,7 +1,8 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { toPosix } from "./platform.mjs";
+import { canonical, toPosix } from "./platform.mjs";
+import { gitCommonDir, gitTop } from "./remote.mjs";
 
 // Text files hash with CRLF folded to LF, so a Windows checkout (autocrlf) and a
 // Linux one give the same hash. Binary files hash their raw bytes.
@@ -20,8 +21,24 @@ export function parseAnchor(s) {
   return /^[0-9a-f]{12}$/.test(hash) ? { path: s.slice(0, i), hash } : null;
 }
 
-export function repoFor(config, project) {
-  return config.projects?.[project]?.repo ?? null;
+// The working tree to check for a project. Normally the mapped repo. When cwd is
+// inside another worktree of that same repo (`git worktree add`), that worktree,
+// so anchors, stale checks and the Stop gate see the edits being made there.
+export function repoFor(config, project, cwd = process.cwd()) {
+  const mapped = config.projects?.[project]?.repo ?? null;
+  return mapped ? (worktreeOf(mapped, cwd) ?? mapped) : null;
+}
+
+// Top of the linked worktree of `mapped` that contains `cwd`, else null.
+export function worktreeOf(mapped, cwd) {
+  try {
+    const top = gitTop(cwd);
+    if (!top || canonical(top) === canonical(mapped)) return null;
+    const common = gitCommonDir(top);
+    return common && common === gitCommonDir(mapped) ? canonical(top) : null;
+  } catch {
+    return null;
+  }
 }
 
 // Compare each anchor's recorded hash with the file on disk.
