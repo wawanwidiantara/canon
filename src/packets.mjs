@@ -10,7 +10,7 @@
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { repoFor } from "./anchors.mjs";
+import { mainRepoFor } from "./anchors.mjs";
 import { writeAtomic } from "./fsx.mjs";
 import { parseBehaviors } from "./markdown.mjs";
 import { canonical, isWithin, toPosix } from "./platform.mjs";
@@ -131,7 +131,7 @@ export function claim(vault, phaseId, { agent = "agent", worktree = true } = {})
     const why = blockers(vault, doc, claims);
     if (why.length) throw new Error(`cannot claim ${phaseId}:\n${why.map((w) => `- ${w}`).join("\n")}`);
     const project = doc.data.project;
-    const repo = repoFor(loadConfig(vault), project, "/");
+    const repo = mainRepoFor(loadConfig(vault), project);
     if (!repo) throw new Error(`project '${project}' has no repo mapped; run \`canon map\``);
     const main = canonical(repo);
     const entry = { project, agent, owns: doc.data.owns.map(clean), base_sha: git(main, ["rev-parse", "HEAD"]), claimed_at: new Date().toISOString(), worktree: null, branch: null };
@@ -153,7 +153,7 @@ export function release(vault, phaseId, { removeWorktree = false } = {}) {
     const c = claims[phaseId];
     if (!c) throw new Error(`${phaseId} is not claimed`);
     if (removeWorktree && c.worktree) {
-      const main = canonical(repoFor(loadConfig(vault), c.project, "/"));
+      const main = canonical(mainRepoFor(loadConfig(vault), c.project));
       git(main, ["worktree", "remove", c.worktree]); // refuses when the worktree has uncommitted work
     }
     delete claims[phaseId];
@@ -197,7 +197,7 @@ export function board(vault) {
 export function outsideOwns(vault, phaseId) {
   const c = loadClaims(vault)[phaseId];
   if (!c) throw new Error(`${phaseId} is not claimed`);
-  const dir = c.worktree ?? canonical(repoFor(loadConfig(vault), c.project, "/"));
+  const dir = c.worktree ?? canonical(mainRepoFor(loadConfig(vault), c.project));
   const names = new Set();
   for (const args of [["diff", "--name-only", c.base_sha], ["ls-files", "--others", "--exclude-standard"]]) {
     for (const n of git(dir, args).split("\n")) if (n.trim()) names.add(n.trim());
@@ -222,7 +222,7 @@ export function ownershipDenial(vault, cwd, file) {
       return owned(c.owns, rel) ? null : `Blocked: ${rel} is outside the paths phase ${id} owns (${c.owns.join(", ")}). Edit only what the phase owns. If this file belongs in the phase, a person must change \`owns\` in the phase doc first.`;
     }
     // Reaching into the main checkout from the worktree would skip the ownership check.
-    const main = repoFor(loadConfig(vault), c.project, "/");
+    const main = mainRepoFor(loadConfig(vault), c.project);
     if (main && isWithin(canonical(main), target)) return `Blocked: ${file} is in the main checkout, outside your worktree ${c.worktree}. Edit the same file inside the worktree.`;
   }
   return null;

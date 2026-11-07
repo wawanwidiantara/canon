@@ -29,6 +29,12 @@ export function repoFor(config, project, cwd = process.cwd()) {
   return mapped ? (worktreeOf(mapped, cwd) ?? mapped) : null;
 }
 
+// The project's main checkout, wherever the command runs. Never a linked worktree.
+export const mainRepoFor = (config, project) => config.projects?.[project]?.repo ?? null;
+
+// True when cwd is inside a linked worktree of the project's repo, not its main checkout.
+export const inWorktree = (config, project, cwd = process.cwd()) => repoFor(config, project, cwd) !== mainRepoFor(config, project);
+
 // Top of the linked worktree of `mapped` that contains `cwd`, else null.
 export function worktreeOf(mapped, cwd) {
   try {
