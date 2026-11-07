@@ -158,8 +158,11 @@ export function addAnchors(vault, docId, relPaths) {
 function addAnchorsLocked(vault, docId, relPaths) {
   const doc = mustDoc(vault, docId);
   if (!ANCHORED.includes(doc.data.type)) throw new Error(`${docId} is a ${doc.data.type}; only ${ANCHORED.join(", ")} docs take anchors`);
-  const repo = repoFor(loadConfig(vault), doc.data.project);
+  const config = loadConfig(vault);
+  const repo = repoFor(config, doc.data.project);
   if (!repo) throw new Error(`project '${doc.data.project}' has no repo mapped; run \`canon map\``);
+  // Anchors hashed from a worktree describe that branch; from the main checkout the same spec would look stale.
+  if (inWorktree(config, doc.data.project)) throw new Error("refusing to anchor from inside a worktree: the hashes would describe this branch, not the project. Anchor from the main checkout after the branch lands.");
   const current = new Map((doc.data.anchors ?? []).map((a) => [a.slice(0, a.lastIndexOf("@")), a]));
   for (const p of relPaths) current.set(p, anchorFor(repo, p));
   const at = gitPoint(repo);
@@ -194,6 +197,45 @@ export function findStale(vault, project = null) {
     }
     const problems = checkAnchors(repo, anchors);
     if (problems.length) out.push({ id: d.data.id, problems, verified_at: d.data.verified_at ?? null, now: gitPoint(repo) });
+  }
+  return out;
+}
+
+const DIFF_CAP = 60;
+
+// What changed under each stale doc: for every changed or missing anchored file, the diff
+// since the commit the doc was last confirmed on (verified_at), cut to DIFF_CAP lines.
+export function staleDiff(vault, stale = findStale(vault)) {
+  const config = loadConfig(vault);
+  const out = [];
+  for (const s of stale) {
+    const project = findDoc(vault, s.id)?.data?.project;
+    const repo = project && repoFor(config, project);
+    if (!repo) continue;
+    const sha = (s.verified_at ?? "").split("@")[1] ?? null;
+    const files = [];
+    for (const p of s.problems) {
+      if (!["changed", "missing"].includes(p.kind)) continue;
+      const rel = p.anchor.slice(0, p.anchor.lastIndexOf("@"));
+      if (p.kind === "missing") {
+        files.push({ path: rel, note: sha ? `deleted since ${sha}` : "deleted; no recorded commit" });
+        continue;
+      }
+      if (!sha) {
+        files.push({ path: rel, note: "no recorded commit, so no comparison is possible" });
+        continue;
+      }
+      try {
+        const raw = execFileSync("git", ["-C", repo, "diff", sha, "--", rel], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+        const lines = raw.split("\n");
+        const body = lines.slice(Math.max(0, lines.findIndex((l) => l.startsWith("@@"))));
+        const shown = body.slice(0, DIFF_CAP).join("\n");
+        files.push({ path: rel, diff: body.length > DIFF_CAP ? `${shown}\n... ${body.length - DIFF_CAP} more lines not shown` : shown.trimEnd() });
+      } catch {
+        files.push({ path: rel, note: `commit ${sha} not found in this repo, so no comparison is possible` });
+      }
+    }
+    if (files.length) out.push({ id: s.id, files });
   }
   return out;
 }

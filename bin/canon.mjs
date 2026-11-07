@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { approve, complete, enforce, supersede } from "../src/ops.mjs";
-import { addAnchors, findStale, init, mapProject, markStale, newDoc, setTask, verifySpec } from "../src/ops.mjs";
+import { addAnchors, findStale, init, mapProject, markStale, newDoc, setTask, staleDiff, verifySpec } from "../src/ops.mjs";
 import { validate } from "../src/validate.mjs";
 import { findVault, listDocs, loadConfig } from "../src/vault.mjs";
 import { resolveProject, writeSkip } from "../src/context.mjs";
@@ -22,7 +22,7 @@ const USAGE = `canon <command>
   validate                                 check every doc; exit 1 on findings
   task <spec-id> <B#> <todo|doing|done> [--test path::name]
   anchor <doc-id> <path...>                record code files a spec, adr or data-model claims about
-  stale [--mark]                           list specs whose code changed; --mark sets needs-review
+  stale [--mark] [--diff]                  list specs whose code changed; --mark sets needs-review; --diff shows what changed since each was confirmed
   verify <doc-id>                          confirm the doc matches code, re-hash anchors
   status [project]                         behavior progress per spec
   mutate [--base B] [--run]                mutation tool for this repo scoped to changed files; --run executes, prints survivors only
@@ -125,6 +125,11 @@ async function main(argv) {
       for (const s of stale) {
         for (const p of s.problems) console.log(`${s.id}: ${p.kind} ${p.anchor}`);
         if (s.verified_at && s.now && s.verified_at.split("@")[0] !== s.now.split("@")[0]) console.log(`  note: verified on ${s.verified_at}, repo is now on ${s.now}; a branch switch can cause this`);
+      }
+      if (f.diff) {
+        for (const d of staleDiff(findVault(), stale)) {
+          for (const file of d.files) console.log(`\n--- ${d.id}: ${file.path}\n${file.diff ?? `  ${file.note}`}`);
+        }
       }
       process.exit(1);
       return;
