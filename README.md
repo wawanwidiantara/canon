@@ -10,7 +10,8 @@
 Canon is a Claude Code plugin and a small `canon` command. The canon is the set of specs, decisions and lessons you have ratified, kept in one private git repo, the *vault*, never inside your app repos. Hooks keep the docs in step with the code. Scripts do the checking, so the model only reads what failed. A retro turns the mistakes you keep correcting into checks that stop them.
 
 ```text
-/plugin install canon --marketplace wawanwidiantara/canon
+/plugin marketplace add wawanwidiantara/canon
+/plugin install canon@clowd
 ```
 
 ```bash
@@ -66,7 +67,8 @@ Needs Node 22.13 or newer. Claude Code itself does not need Node, so install it 
 
 ```bash
 # 1. Install the plugin (inside Claude Code)
-/plugin install canon --marketplace wawanwidiantara/canon
+/plugin marketplace add wawanwidiantara/canon
+/plugin install canon@clowd
 
 # 2. Create your vault: a private repo for your docs
 canon init ~/canon-vault
