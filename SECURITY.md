@@ -10,7 +10,7 @@ Please report a vulnerability privately through GitHub: **Security**, then **Rep
 - Session digests are written to the vault. Text that looks like a secret (private keys, common API tokens, bearer tokens, passwords in URLs and `key=value` pairs) is replaced before saving. The scrubber is pattern-based and will miss unusual secrets, so keep the vault private.
 - A `PreToolUse` hook asks you to confirm `canon approve` and `canon supersede`, so the agent cannot make a doc canon on its own. It matches the command by name, so it does not stop someone editing the files directly.
 - A `PreToolUse` hook blocks the plugin's `canon:reviewer` and `canon:researcher` subagents unless `agents.<name>` is true in `canon.config.json`, because they spend extra tokens.
-- A `PreToolUse` hook blocks Quicksilver (`qs`) in mapped projects unless you allow it. The block is enforced by the hook, not by the model, but it only matches the `qs` command by name.
+- A `PreToolUse` hook blocks Quicksilver (`qs`) in mapped projects unless you allow it. The block is enforced by the hook, not by the model, but it matches the `qs` command and the skill's `qs.mjs` script by name, so a different entry point would not be caught.
 
 ## Out of scope
 

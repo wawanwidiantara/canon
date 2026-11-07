@@ -90,7 +90,9 @@ export function doctor({ cwd = process.cwd(), env = process.env, home = os.homed
     const s = cg ? cgInspect(repo) : null;
     out.push(!cg ? warn("codegraph", "CLI not installed (optional)", "npm i -g @colbymchenry/codegraph") : s.index && s.wired.length ? ok("codegraph", "indexed and wired") : warn("codegraph", "installed but this repo is not indexed or wired", "`canon codegraph --setup`"));
   } else out.push(cg ? ok("codegraph", "CLI installed") : warn("codegraph", "CLI not installed (optional)", "npm i -g @colbymchenry/codegraph"));
-  out.push(findOnPath("qs", { env }) ? ok("quicksilver", "qs installed (gated per project)") : warn("quicksilver", "not installed (optional)", "see the README"));
+  // The skill runs as `node <skill dir>/scripts/qs.mjs`; a `qs` on PATH is the other way to have it.
+  const qsSkill = path.join(home, ".claude", "skills", "quicksilver", "scripts", "qs.mjs");
+  out.push(findOnPath("qs", { env }) || fs.existsSync(qsSkill) ? ok("quicksilver", "installed (gated per project)") : warn("quicksilver", "not installed (optional)", "see the README"));
   return out;
 }
 

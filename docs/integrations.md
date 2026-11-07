@@ -45,13 +45,13 @@ With `onStop: true` the fast checks run when a turn ends and the agent is stoppe
 
 ## Quicksilver and the privacy gate
 
-[Quicksilver](https://github.com/UditAkhourii/quicksilver) sends file content to a third-party API to triage many files cheaply. It is off in every mapped project by default. A `PreToolUse` hook blocks `qs filter|classify|rank|find|ask` unless the project sets:
+[Quicksilver](https://github.com/UditAkhourii/quicksilver) sends file content to a third-party API to triage many files cheaply. It is off in every mapped project by default. A `PreToolUse` hook blocks `filter`, `classify`, `rank`, `find` and `ask` unless the project sets the flag below. It matches both a bare `qs` and the form the skill actually runs, `node ".../scripts/qs.mjs" filter ...`. `setup`, `status` and `help` are not blocked, because they send no files.
 
 ```json
 "projects": { "my-app": { "quicksilver": true } }
 ```
 
-Install Quicksilver yourself and keep it away from code you may not share.
+Install Quicksilver yourself and keep it away from code you may not share. The gate only guards mapped projects: in a repo you did not map, nothing stops `qs`. It also cannot see where the data goes, so `QUICKSILVER_API_BASE` is yours to keep unset or pointed at a host you trust. Keep the key in `~/.quicksilver/config.json`, not in a repo.
 
 ## Opt-in subagents
 

@@ -96,8 +96,8 @@ test("a failed command is reported, not thrown", () => {
 });
 
 test("quicksilver gate", () => {
-  for (const c of ["qs filter 'x' src", "cd a && qs rank q .", "~/.claude/skills/quicksilver/bin/qs ask q", "echo hi | qs classify --labels a,b"]) assert.equal(isQuicksilverCall(c), true, c);
-  for (const c of ["ls", "grep qs file", "npm run qstatus", "qs status", "echo qs"]) assert.equal(isQuicksilverCall(c), false, c);
+  for (const c of ["qs filter 'x' src", "cd a && qs rank q .", "~/.claude/skills/quicksilver/bin/qs ask q", "echo hi | qs classify --labels a,b", 'node "/home/u/.claude/skills/quicksilver/scripts/qs.mjs" filter "x" src', "node ~/.claude/skills/quicksilver/scripts/qs.mjs find 'y' big.py", "cd a && node scripts/qs.mjs rank q ."]) assert.equal(isQuicksilverCall(c), true, c);
+  for (const c of ["ls", "grep qs file", "npm run qstatus", "qs status", "echo qs", 'node "/home/u/.claude/skills/quicksilver/scripts/qs.mjs" status', "node ~/.claude/skills/quicksilver/scripts/qs.mjs setup", "cat qs.mjs", "node other.mjs find x"]) assert.equal(isQuicksilverCall(c), false, c);
   const cfg = { projects: { a: {}, b: { quicksilver: true } } };
   assert.match(quicksilverDenial(cfg, "a", "qs filter x src"), /has not allowed it/);
   assert.equal(quicksilverDenial(cfg, "b", "qs filter x src"), null);

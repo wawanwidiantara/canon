@@ -1,6 +1,8 @@
 // Privacy gate for tools that send code to a third party (Quicksilver/Jev).
 // Deterministic: a PreToolUse hook denies the call, rather than asking the model nicely.
-const QS_RE = /(^|[\s;&|(/])qs\s+(filter|classify|rank|find|ask)\b/;
+// Matches `qs filter ...` and the form the skill actually runs: `node ".../scripts/qs.mjs" filter ...`.
+// Only the subcommands that send file content are blocked; setup, status and help are not.
+const QS_RE = /(^|[\s;&|("'/])qs(\.mjs)?["']?\s+(filter|classify|rank|find|ask)\b/;
 
 export const isQuicksilverCall = (command) => QS_RE.test(String(command ?? ""));
 

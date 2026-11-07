@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.10 (unreleased)
+
+- Fix: the Quicksilver privacy gate now also blocks the form the skill really runs, `node ".../scripts/qs.mjs" filter ...`. Before, only a bare `qs` was matched, so the skill's own calls passed. `canon doctor` now finds the skill install too.
+
 ## 0.1.9
 
 - `canon stale --mark` refuses to run inside a worktree, where it would flip shared doc status for a branch.
