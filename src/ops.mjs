@@ -268,6 +268,14 @@ export function complete(vault, id) {
 function completeLocked(vault, id) {
   const doc = mustDoc(vault, id);
   if (!["active", "needs-review"].includes(doc.data.status)) throw new Error(`${id} is ${doc.data.status}; only active docs can be completed`);
+  const problems = completionProblems(vault, id);
+  if (problems.length) throw new Error(`cannot complete ${id}:\n${problems.map((p) => `- ${p}`).join("\n")}`);
+  write(doc, { ...doc.data, status: "completed" }, doc.body);
+}
+
+// Everything that stops a doc from being completed right now. Empty means it can be.
+export function completionProblems(vault, id) {
+  const doc = mustDoc(vault, id);
   const problems = [];
   if (doc.data.type === "phase") {
     const sec = getSection(doc.body, "Behaviors");
@@ -295,8 +303,7 @@ function completeLocked(vault, id) {
     problems.push(...specProblems(vault, id));
   }
   problems.push(...findingsFor(vault, doc));
-  if (problems.length) throw new Error(`cannot complete ${id}:\n${problems.map((p) => `- ${p}`).join("\n")}`);
-  write(doc, { ...doc.data, status: "completed" }, doc.body);
+  return problems;
 }
 
 // Replace a doc with another instead of deleting or archiving it.

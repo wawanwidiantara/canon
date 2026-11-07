@@ -41,4 +41,4 @@ Only when `canon ready` lists several approved phases whose owned paths do not o
 
 1. `canon claim <phase-id> --agent <name>` creates a worktree and branch for the phase. Work only inside that worktree; a hook denies edits outside the owned paths.
 2. After each step `canon gate fast`; before finishing `canon gate full` and `canon check-owns <phase-id>`.
-3. A person reviews and merges the branch, then `canon complete <phase-id>` and `canon release <phase-id> --remove-worktree`.
+3. Commit the work on the branch, then from the main checkout run `canon land <phase-id>` (or `--no-merge` to review first). It does the owned-path check, rebase, regen, full gate, merge, spec re-verify, completion and cleanup, and stops with the reason when anything fails. Fix what it names, commit, run it again.

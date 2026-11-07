@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.8 (unreleased)
+
+- `canon land`: one scripted path from a finished branch to main. Gate files may list `regen` commands that rebuild generated files after the rebase.
+
 ## 0.1.7
 
 First public version, named Canon.

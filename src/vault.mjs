@@ -78,8 +78,8 @@ export function saveConfig(vault, config) {
 // Run fn while holding a named lock on the vault. Every read-modify-write of a
 // doc or of the config goes through this, so two sessions or hooks cannot each
 // read the old text and then overwrite the other's change.
-export function lockVault(vault, name, fn) {
-  return withLock(path.join(vault, ".canon", "locks", `rmw-${name}`.replace(/[^\w-]/g, "_")), fn);
+export function lockVault(vault, name, fn, opts) {
+  return withLock(path.join(vault, ".canon", "locks", `rmw-${name}`.replace(/[^\w-]/g, "_")), fn, opts);
 }
 
 function walk(dir, out) {

@@ -3,7 +3,11 @@
 // every worktree and branch carries the gate it was written against.
 //
 //   { "fast": [ { "name": "lint", "cmd": "npm", "args": ["run", "lint"] } ],
-//     "full": [ { "name": "test", "cmd": "npm", "args": ["test"], "timeoutSec": 600 } ] }
+//     "full": [ { "name": "test", "cmd": "npm", "args": ["test"], "timeoutSec": 600 } ],
+//     "regen": [ { "name": "codegen", "cmd": "npm", "args": ["run", "gen"] } ] }
+//
+// `regen` rebuilds generated files; `canon land` runs it after rebasing a branch
+// onto main and commits whatever changes.
 //
 // `fast` is cheap enough to run after every step. `full` runs `fast` first, then
 // its own commands. Commands are argv lists, never shell strings, so a gate
@@ -15,7 +19,7 @@ import { spawnPortable } from "./platform.mjs";
 import { writeAtomic } from "./fsx.mjs";
 
 export const GATE_FILE = "canon.gate.json";
-const LEVELS = ["fast", "full"];
+const LEVELS = ["fast", "full", "regen"];
 
 // { fast: [...], full: [...] } or null when the repo has no gate file.
 // Throws with a precise message when the file is malformed.
@@ -41,7 +45,7 @@ export function loadGate(repo) {
       return { name: c.name ?? c.cmd, cmd: c.cmd, args: c.args ?? [], timeoutSec: c.timeoutSec ?? (level === "fast" ? 60 : 300) };
     });
   }
-  for (const k of Object.keys(raw)) if (!LEVELS.includes(k)) throw new Error(`${GATE_FILE}: unknown key "${k}" (use fast and full)`);
+  for (const k of Object.keys(raw)) if (!LEVELS.includes(k)) throw new Error(`${GATE_FILE}: unknown key "${k}" (use fast, full and regen)`);
   return gate;
 }
 
@@ -114,4 +118,14 @@ export function initGate(repo) {
   const gate = suggestGate(repo);
   writeAtomic(file, JSON.stringify(gate, null, 2) + "\n");
   return { file, gate };
+}
+
+// Run the regen commands in order; throws on the first failure.
+export function runRegen(repo) {
+  const gate = loadGate(repo);
+  for (const c of gate?.regen ?? []) {
+    const r = spawnPortable(c.cmd, c.args, { cwd: repo, encoding: "utf8", maxBuffer: 64 * 1024 * 1024, timeout: c.timeoutSec * 1000 });
+    if (r.error || r.status !== 0) throw new Error(`regen "${c.name}" failed:\n${tail(`${r.stdout ?? ""}\n${r.stderr ?? ""}\n${r.error?.message ?? ""}`, 25)}`);
+  }
+  return (gate?.regen ?? []).map((c) => c.name);
 }

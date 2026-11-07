@@ -41,6 +41,7 @@ const USAGE = `canon <command>
   release <phase-id> [--remove-worktree]   give a phase back
   ready [project]                          approved phases that can start now, and why the others cannot
   board                                    live claims: who holds which phase, branch, behaviors done
+  land <phase-id> [--no-merge]             owned-path check, completion check, rebase on main, regen, full gate, merge --no-ff, re-verify specs, release; stops at the first problem with main untouched
   check-owns <phase-id>                    files changed outside the phase's owned paths; exit 1 if any
   codegraph [project] [--setup [--yes]]    show how codegraph is set up for mapped repos; --setup plans (and with --yes applies) only the missing pieces
   approve <id>                             draft -> active, only if the doc validates as active
@@ -201,6 +202,11 @@ async function main(argv) {
       const p = await import("../src/packets.mjs");
       const rows = p.board(findVault());
       return console.log(rows.length ? rows.map((r) => `${r.id}  ${r.agent}  ${r.done}/${r.total} done  ${r.branch ?? "-"}  since ${r.claimed_at}`).join("\n") : "no live claims");
+    }
+    case "land": {
+      const { land } = await import("../src/land.mjs");
+      console.log(land(findVault(), pos[0], { merge: !f["no-merge"] }).map((s) => `- ${s}`).join("\n"));
+      return;
     }
     case "check-owns": {
       const p = await import("../src/packets.mjs");
