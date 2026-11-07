@@ -7,7 +7,7 @@ import { canonical, isReservedName } from "./platform.mjs";
 import { ANCHORED, SLUG_RE, TYPES } from "./schema.mjs";
 import { getSection, isBlank, parseBehaviors, stripComments, updateBehavior } from "./markdown.mjs";
 import { validate } from "./validate.mjs";
-import { anchorFor, checkAnchors, repoFor } from "./anchors.mjs";
+import { anchorFor, checkAnchors, describeProblems, repoFor } from "./anchors.mjs";
 import { findDoc, listDocs, loadConfig, lockVault, saveConfig } from "./vault.mjs";
 import { gitCommonDir, normalizeRemote, originOf } from "./remote.mjs";
 
@@ -177,12 +177,13 @@ export function gitPoint(repo) {
   }
 }
 
-// Active specs whose anchored code changed or vanished.
-export function findStale(vault) {
+// Active specs, ADRs and data models whose anchored code changed or vanished. Pass a project to look at one.
+export function findStale(vault, project = null) {
   const config = loadConfig(vault);
   const out = [];
   for (const d of listDocs(vault)) {
     if (!ANCHORED.includes(d.data?.type) || d.data.status !== "active") continue;
+    if (project && d.data.project !== project) continue;
     const anchors = d.data.anchors ?? [];
     if (!anchors.length) continue;
     const repo = repoFor(config, d.data.project);
@@ -261,7 +262,7 @@ function specProblems(vault, specId) {
   const doc = mustDoc(vault, specId);
   const open = parseBehaviors(doc.body).items.filter((b) => b.state !== "done");
   const out = open.map((b) => `${specId} ${b.id} is ${b.state}: ${b.text}`);
-  for (const s of findStale(vault)) if (s.id === specId) out.push(`${specId} is stale (${s.problems.map((p) => `${p.kind} ${p.anchor}`).join(", ")}); update it, then \`canon verify ${specId}\``);
+  for (const s of findStale(vault)) if (s.id === specId) out.push(`${specId} is stale (${describeProblems(s.problems)}); update it, then \`canon verify ${specId}\``);
   if (doc.data.status === "needs-review") out.push(`${specId} needs review; update it, then \`canon verify ${specId}\``);
   return out;
 }
@@ -304,7 +305,7 @@ export function completionProblems(vault, id) {
     const stale = findStale(vault);
     for (const s of specs) {
       const st = stale.find((x) => x.id === s);
-      if (st) problems.push(`${s} is stale (${st.problems.map((p) => `${p.kind} ${p.anchor}`).join(", ")}); update it, then \`canon verify ${s}\``);
+      if (st) problems.push(`${s} is stale (${describeProblems(st.problems)}); update it, then \`canon verify ${s}\``);
       const sd = findDoc(vault, s);
       if (sd?.data?.status === "needs-review") problems.push(`${s} needs review; update it, then \`canon verify ${s}\``);
     }
