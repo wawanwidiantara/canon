@@ -69,8 +69,19 @@ export function findOnPath(name, { env = process.env, platform = process.platfor
   return null;
 }
 
+// The real path of `p`: symlinks resolved (macOS /var is /private/var) and
+// Windows 8.3 short names expanded (RUNNER~1). Falls back to a plain absolute
+// path when `p` does not exist.
+export function canonical(p) {
+  try {
+    return fs.realpathSync.native(p);
+  } catch {
+    return path.resolve(p);
+  }
+}
+
 const norm = (p, platform) => {
-  const r = platform === "win32" ? path.win32.resolve(p) : path.resolve(p);
+  const r = platform === "win32" ? path.win32.resolve(p) : path.posix.resolve(p);
   return platform === "win32" || platform === "darwin" ? r.toLowerCase() : r;
 };
 

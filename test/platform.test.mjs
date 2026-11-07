@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { buildInvocation, configDir, findOnPath, isReservedName, isWithin, resolveCommand, toPosix, winQuote } from "../src/platform.mjs";
+import { buildInvocation, canonical, configDir, findOnPath, isReservedName, isWithin, resolveCommand, toPosix, winQuote } from "../src/platform.mjs";
 import { parse } from "../src/frontmatter.mjs";
 import { validate } from "../src/validate.mjs";
 import { addAnchors, init, mapProject, newDoc } from "../src/ops.mjs";
@@ -89,4 +89,19 @@ test("projectForCwd tolerates case and trailing-separator differences on case-in
   const cfg = { projects: { a: { repo: path.resolve("/x/Repo") } } };
   assert.equal(projectForCwd(cfg, path.resolve("/x/Repo/sub")), "a");
   assert.equal(projectForCwd(cfg, path.resolve("/x/Repo2")), null);
+});
+
+test("canonical resolves symlinks, so a repo mapped by one path is found from another", (t) => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "canon-"));
+  const real = path.join(root, "real");
+  const link = path.join(root, "link");
+  fs.mkdirSync(path.join(real, "src"), { recursive: true });
+  try {
+    fs.symlinkSync(real, link, "junction");
+  } catch {
+    return t.skip("cannot create symlinks here");
+  }
+  assert.equal(canonical(link), fs.realpathSync.native(real));
+  assert.equal(isWithin(canonical(link), canonical(path.join(real, "src"))), true);
+  assert.equal(canonical(path.join(root, "missing")), path.join(root, "missing"));
 });

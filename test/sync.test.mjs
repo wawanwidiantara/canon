@@ -68,7 +68,7 @@ test("another device finds the repo by its remote, no manual mapping", () => {
   git(clone, "init", "-q");
   git(clone, "remote", "add", "origin", "https://github.com/Me/App.git");
   assert.equal(resolveProject(vault, path.join(clone, "src")), "app");
-  assert.equal(loadConfig(vault).projects.app.repo, fs.realpathSync(clone) === clone ? clone : path.resolve(git(clone, "rev-parse", "--show-toplevel").trim()));
+  assert.equal(loadConfig(vault).projects.app.repo, fs.realpathSync.native(clone));
   assert.equal(resolveProject(vault, path.join(clone, "src")), "app"); // now by path
 
   const other = path.join(root, "other-clone"); // a second clone is not guessed at

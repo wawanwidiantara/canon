@@ -10,7 +10,7 @@ import { listDocs, loadConfig, loadLocal, saveLocal } from "./vault.mjs";
 import { gitTop, normalizeRemote, originOf } from "./remote.mjs";
 import { pullIfDue, syncSettings, vaultState } from "./sync.mjs";
 import { checkAnchors, repoFor } from "./anchors.mjs";
-import { configDir, isWithin } from "./platform.mjs";
+import { canonical, configDir, isWithin } from "./platform.mjs";
 import { inspect as cgInspect } from "./codegraph.mjs";
 import { formatResults, planChecks, runChecks } from "./check.mjs";
 import { changedFiles } from "./mutation.mjs";
@@ -31,8 +31,8 @@ export function projectForCwd(config, cwd) {
   let best = null;
   for (const [slug, p] of Object.entries(config.projects ?? {})) {
     if (!p.repo) continue; // known by remote only, not mapped on this device
-    const repo = path.resolve(p.repo);
-    if (isWithin(repo, cwd) && (!best || repo.length > best.len)) {
+    const repo = canonical(p.repo);
+    if (isWithin(repo, canonical(cwd)) && (!best || repo.length > best.len)) {
       best = { slug, len: repo.length };
     }
   }
@@ -55,7 +55,7 @@ export function resolveProject(vault, cwd) {
   if (current && fs.existsSync(current)) return null;
   const local = loadLocal(vault);
   local.projects ??= {};
-  local.projects[slug] = { ...local.projects[slug], repo: path.resolve(top) };
+  local.projects[slug] = { ...local.projects[slug], repo: canonical(top) };
   saveLocal(vault, local);
   return slug;
 }

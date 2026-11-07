@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { stringify } from "./frontmatter.mjs";
 import { writeAtomic, withLock } from "./fsx.mjs";
-import { isReservedName } from "./platform.mjs";
+import { canonical, isReservedName } from "./platform.mjs";
 import { SLUG_RE, TYPES } from "./schema.mjs";
 import { getSection, isBlank, parseBehaviors, stripComments, updateBehavior } from "./markdown.mjs";
 import { validate } from "./validate.mjs";
@@ -60,7 +60,7 @@ export function mapProject(vault, slug, repo, { remote } = {}) {
   if (!SLUG_RE.test(slug)) throw new Error(`bad project slug '${slug}'`);
   const config = loadConfig(vault);
   config.projects ??= {};
-  const abs = path.resolve(repo);
+  const abs = canonical(repo);
   const found = remote ?? originOf(abs);
   config.projects[slug] = { ...config.projects[slug], repo: abs };
   const norm = normalizeRemote(found);
