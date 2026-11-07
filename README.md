@@ -114,6 +114,7 @@ Several skills are adapted from other people's work, and many ideas come from it
 - **Matt Pocock**, [mattpocock/skills](https://github.com/mattpocock/skills) (MIT): grilling, spec and ticket flow, TDD, retro, and the rule that specs avoid file paths and code snippets.
 - **Robert C. Martin (Uncle Bob)**, [unclebob/ub-mode](https://github.com/unclebob/ub-mode) (MIT): the reduced-principles coding mode.
 - **Lauren Tan (poteto)**, [pstack](https://github.com/cursor/plugins/tree/main/pstack) in cursor/plugins (MIT): `correct`, `unslop`, and the approach of turning repeated mistakes into structural checks.
+- **Caldo**, [caldoai/skills](https://github.com/caldoai/skills) (MIT): the `untangle-codebase` skill, which `untangle` narrows to a read-only audit of one area. The three kinds of structural problem and the special-case test come from it.
 
 Where a skill here is adapted from one of these, its file says so, and the original license applies to the copied parts.
 
