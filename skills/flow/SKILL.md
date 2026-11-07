@@ -16,7 +16,11 @@ Follow the steps in order. Scale to the size of the change, and stop at each mar
 1. **Orient.** `canon query <words>` and `canon query --governs <path>` before reading files. Reuse a spec or ADR that already covers this; edit it instead of writing a new one.
 2. **Research** (only if the answer is not known). Use the `research` skill in its own session and keep the result as a discovery doc: `canon new discovery <project> <slug>`.
 3. **Grill.** Run the `grilling` skill. **Gate:** the user confirms the decisions.
-4. **Spec.** `canon new spec`, fill every section from the grill, `canon anchor` the code it governs. **Gate:** the user reads it, then run `canon approve <spec-id>`. Claude Code will ask the user to confirm; say what you are asking them to approve and do not try to work around the prompt.
+4. **Spec.** `canon new spec`, fill every section from the grill, `canon anchor` the code it governs.
+   - Optional, for a newly written spec, if the session brief lists `canon:spec-reviewer`: spawn it with the spec id before the approve gate. It reads only the spec and its `depends_on` docs, never the code, and returns one line per finding and a verdict. Fix every finding in the spec yourself.
+   - Skip this for a small edit to an existing spec. Skip it when `canon:spec-reviewer` is not listed; do not ask the user to enable it.
+   - If it is listed but a fresh subagent cannot start, stop and tell the user. Never run the review in the main session, because a review with the conversation in context is not a cold read.
+   **Gate:** the user reads it, then run `canon approve <spec-id>`. Claude Code will ask the user to confirm; say what you are asking them to approve and do not try to work around the prompt.
 5. **Phase.** For anything larger than one sitting, `canon new phase` listing the behaviors as `- [[spec-id#B1]]`, then `canon approve <phase-id>`. Keep phases small enough to finish in one or two sessions.
 6. **Build.** For each behavior run the `tdd` skill: `canon task <spec> B1 doing`, red, green, `canon task <spec> B1 done --test path::name`. Keep the spec in step with the code as you go.
 7. **Close the phase.**

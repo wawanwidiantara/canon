@@ -54,7 +54,7 @@ export function init(vault, { git = true } = {}) {
   // Pin line endings so a Windows checkout does not rewrite every doc (and every hash).
   const attrs = path.join(vault, ".gitattributes");
   if (!fs.existsSync(attrs)) fs.writeFileSync(attrs, "* text=auto eol=lf\n");
-  if (!fs.existsSync(cfg)) fs.writeFileSync(cfg, JSON.stringify({ schema_version: 1, projects: {}, sync: { pullOnStart: true, digests: false }, ratify: "ask", agents: { reviewer: false, researcher: false } }, null, 2) + "\n");
+  if (!fs.existsSync(cfg)) fs.writeFileSync(cfg, JSON.stringify({ schema_version: 1, projects: {}, sync: { pullOnStart: true, digests: false }, ratify: "ask", agents: { reviewer: false, researcher: false, "spec-reviewer": false } }, null, 2) + "\n");
 }
 
 // Maps a project to a repo on this device. The repo's git remote is recorded in
