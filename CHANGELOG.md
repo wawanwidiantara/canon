@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.12
+
+- Internal cleanups with no change in behavior: one stale check and one way to print its problems, a named main-checkout rule in place of a slash argument, the opt-in agent names defined once (a new vault's config is built from them, and a test fails if `agents/` and the list disagree), and the groups of doc statuses named in the schema.
+- More tests: the land and stale behaviors that had no test now have one, and each cleanup has its own.
+
 ## 0.1.11
 
 - Opt-in subagent `canon:spec-reviewer`: a cold read of a newly written draft spec before it is approved. It reads only the spec and its `depends_on` docs, returns one line per finding and a verdict, and stays off until `agents.spec-reviewer` is true. The `flow` skill offers it at the spec step.
