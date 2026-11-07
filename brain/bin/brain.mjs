@@ -6,7 +6,8 @@ import { findVault, listDocs, loadConfig } from "../src/vault.mjs";
 import { resolveProject, writeSkip } from "../src/context.mjs";
 import { setupDevice, syncVault } from "../src/sync.mjs";
 import { repoFor } from "../src/anchors.mjs";
-import { buildDigest, loadDigests, lastRetro, markRetroDone, retroReport, saveDigest } from "../src/digest.mjs";
+import { buildDigest, loadDigests, lastRetro, markRetroDone, retroReport, saveDigest, usageReport } from "../src/digest.mjs";
+import { doctor, formatDoctor } from "../src/doctor.mjs";
 import { apply as cgApply, describe as cgDescribe, inspect as cgInspect, plan as cgPlan } from "../src/codegraph.mjs";
 import { checkFiles, formatResults, planChecks, runChecks } from "../src/check.mjs";
 import { changedFiles, detectTools, filterSurvivors, plansFor, runMutation } from "../src/mutation.mjs";
@@ -40,6 +41,8 @@ const USAGE = `brain <command>
   complete <id>                            active -> completed; a phase or spec needs every behavior done and no stale code
   supersede <old-id> <new-id>              replace a doc (kept for history, hidden from search)
   enforce <lesson-id>                      mark a lesson enforced once a check prevents the mistake
+  doctor                                   check this device: Node, vault, git, mapped repos, permissions, optional tools; prints the fix for each problem
+  usage [project]                          token usage per week from session digests, costliest sessions, most used tools
   skip-docs                                current code changes need no doc (run inside the repo)
 Vault: nearest brain.config.json above cwd, or $BRAIN_VAULT.`;
 
@@ -109,7 +112,10 @@ async function main(argv) {
     case "stale": {
       const stale = f.mark ? markStale(findVault()) : findStale(findVault());
       if (!stale.length) return console.log("no stale specs");
-      for (const s of stale) for (const p of s.problems) console.log(`${s.id}: ${p.kind} ${p.anchor}`);
+      for (const s of stale) {
+        for (const p of s.problems) console.log(`${s.id}: ${p.kind} ${p.anchor}`);
+        if (s.verified_at && s.now && s.verified_at.split("@")[0] !== s.now.split("@")[0]) console.log(`  note: verified on ${s.verified_at}, repo is now on ${s.now}; a branch switch can cause this`);
+      }
       process.exit(1);
       return;
     }
@@ -162,6 +168,19 @@ async function main(argv) {
       if (typeof f.active === "string") return out(ix.listActive(vault, f.active, typeof f.type === "string" ? f.type : undefined));
       if (!pos.length) throw new Error("query needs text or one of --governs --deps --dependents --open --active");
       return out(ix.search(vault, pos.join(" "), { project, type: typeof f.type === "string" ? f.type : undefined, status: typeof f.status === "string" ? f.status : undefined, limit: Number(f.limit) || 8 }));
+    }
+    case "doctor": {
+      const results = doctor();
+      console.log(formatDoctor(results));
+      if (results.some((r) => r.level === "FAIL")) process.exit(1);
+      return;
+    }
+    case "usage": {
+      const vault = findVault();
+      const config = loadConfig(vault);
+      const projects = pos[0] ? [pos[0]] : Object.keys(config.projects ?? {});
+      const digests = projects.flatMap((p) => loadDigests(vault, p));
+      return console.log(usageReport(digests));
     }
     case "digest": {
       const text = (await import("node:fs")).readFileSync(pos[0], "utf8");

@@ -154,6 +154,45 @@ export function gitState(repo, paths = []) {
 const tmpFile = (kind, key) =>
   path.join(os.tmpdir(), `brain-${kind}-${crypto.createHash("sha256").update(key).digest("hex").slice(0, 12)}`);
 
+// Session start marker, so "did docs change this session" does not depend on git
+// state (a mid-session `brain sync` commits the docs and would hide the edit).
+// Kept per repo; an unchanged session id (compaction, resume) keeps the first time.
+export function markSession(vault, project, sessionId) {
+  const repo = repoFor(loadConfig(vault), project);
+  if (!repo) return;
+  const f = tmpFile("session", repo);
+  try {
+    if (JSON.parse(fs.readFileSync(f, "utf8")).id === (sessionId ?? "none")) return;
+  } catch {
+    // first session for this repo
+  }
+  fs.writeFileSync(f, JSON.stringify({ id: sessionId ?? "none", ms: Date.now() }));
+}
+
+export function sessionStartMs(vault, project) {
+  const repo = repoFor(loadConfig(vault), project);
+  try {
+    return JSON.parse(fs.readFileSync(tmpFile("session", repo), "utf8")).ms;
+  } catch {
+    return null;
+  }
+}
+
+export function docsTouchedSince(vault, project, ms) {
+  const root = path.join(vault, "projects", project);
+  const walk = (dir) => {
+    if (!fs.existsSync(dir)) return false;
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      const p = path.join(dir, e.name);
+      if (e.isDirectory()) {
+        if (walk(p)) return true;
+      } else if (e.name.endsWith(".md") && fs.statSync(p).mtimeMs > ms) return true;
+    }
+    return false;
+  };
+  return walk(root);
+}
+
 // "No doc needed for the current changes": ties the skip to the exact diff.
 export function writeSkip(repo) {
   const state = gitState(repo);
@@ -167,7 +206,7 @@ function skipped(repo, state) {
 }
 
 // Why the turn should not end yet, or [] if fine.
-export function stopReasons(vault, project) {
+export function stopReasons(vault, project, { since = null } = {}) {
   const reasons = [];
   const findings = projectFindings(vault, project);
   if (findings.length) reasons.push(`brain validate found ${findings.length} problem(s):\n${findings.slice(0, 8).map((f) => `- ${f}`).join("\n")}`);
@@ -177,7 +216,10 @@ export function stopReasons(vault, project) {
   const repo = repoFor(loadConfig(vault), project);
   const code = repo ? gitState(repo) : null;
   const docs = gitState(vault, [path.join("projects", project)]);
-  if (code && docs === "" && !skipped(repo, code)) {
+  const touched = since != null ? docsTouchedSince(vault, project, since) : null;
+  const docsChanged = (docs !== null && docs !== "") || touched === true;
+  const known = docs !== null || touched !== null;
+  if (code && known && !docsChanged && !skipped(repo, code)) {
     reasons.push(
       `Code changed in ${repo} but no doc changed under projects/${project}. Update or create the spec (\`brain new spec ${project} <slug>\`, \`brain task\`, \`brain anchor\`). If these changes need no doc, run \`brain skip-docs\` in the repo.`,
     );

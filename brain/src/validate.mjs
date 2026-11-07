@@ -3,6 +3,8 @@ import { NO_CODE_SECTIONS, STATUS, TYPES, TYPE_NAMES } from "./schema.mjs";
 import { getSection, isBlank, parseBehaviors, stripComments, stripFences } from "./markdown.mjs";
 import { listDocs, projectFromPath } from "./vault.mjs";
 import { parseAnchor } from "./anchors.mjs";
+import { SCHEMA_VERSION } from "./schema.mjs";
+import { loadConfig } from "./vault.mjs";
 
 const REQUIRED = ["id", "type", "project", "stack", "status", "depends_on"];
 const WIKILINK_RE = /\[\[([^\]|#]+)(?:#([^\]|]+))?[^\]]*\]\]/g;
@@ -10,6 +12,12 @@ const PHASE_REF_RE = /^- \[\[([^\]#]+)#(B\d+)\]\]\s*$/;
 
 export function validate(vault) {
   const findings = [];
+  try {
+    const sv = loadConfig(vault).schema_version ?? 1;
+    if (sv > SCHEMA_VERSION) findings.push(`brain.config.json: vault uses schema ${sv}, this tool supports ${SCHEMA_VERSION}; update software-factory`);
+  } catch {
+    // no config: a bare folder of docs is still validated
+  }
   const docs = listDocs(vault);
   const byId = new Map();
   for (const d of docs) if (d.data?.id && !byId.has(d.data.id)) byId.set(d.data.id, d);

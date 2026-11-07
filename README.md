@@ -35,6 +35,8 @@ brain map my-app ~/code/my-app  # saves the repo's git remote in the shared conf
 
 On another device: clone the vault, run `brain setup <path>`, clone your app repos. A repo is recognized by its git remote, so no mapping is needed. At session start the vault is fast-forward pulled (at most every 10 minutes, never touching local edits, offline is fine). `brain sync` commits vault changes, rebases on the remote and pushes; it stops and keeps your commit if there is a conflict. Push is never automatic. Session digests stay per device unless `sync.digests` is `true` in `brain.config.json`.
 
+Run `brain doctor` on any device: it checks Node (22.13+ is required, Claude Code itself does not need it), git, the vault, mapped repos, the `Bash(brain:*)` permission and the optional tools, and prints the fix for each problem. `brain usage` shows token use per week from session digests. For a repo that already has code, run the `onboard` skill once.
+
 Setup:
 1. `claude --plugin-dir .` (or install the plugin) and put the vault path in `BRAIN_VAULT` or the file `vault` in `~/.config/brain/` (`%APPDATA%\brain\` on Windows).
 2. Map each repo: `brain map <project> <repo-path>` inside the vault.

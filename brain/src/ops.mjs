@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { stringify } from "./frontmatter.mjs";
+import { writeAtomic, withLock } from "./fsx.mjs";
 import { isReservedName } from "./platform.mjs";
 import { SLUG_RE, TYPES } from "./schema.mjs";
 import { getSection, isBlank, parseBehaviors, stripComments, updateBehavior } from "./markdown.mjs";
@@ -81,29 +82,33 @@ export function newDoc(vault, { type, project, slug, title, depends = [], stack 
   const dir =
     project === "global" ? path.join(vault, def.dir) : path.join(vault, "projects", project, def.dir);
   const base = project === "global" ? "" : `${project}-`;
-  const id = def.numbered
-    ? `${base}${type}-${nextNumber(dir, `${base}${type}`)}-${slug}`
-    : `${base}${slug}`;
-  const file = path.join(dir, `${id}.md`);
-  if (fs.existsSync(file)) throw new Error(`already exists: ${file}`);
+  return withLock(path.join(vault, ".brain", "locks", `${base}${type}`.replace(/[^\w-]/g, "_")), () => create());
 
-  const data = {
-    id,
-    type,
-    project,
-    stack,
-    status: "draft",
-    depends_on: depends.map((d) => `[[${d}]]`),
-  };
-  if (type === "spec") data.anchors = [];
-  if (type === "lesson") data.enforced = "false";
+  function create() {
+    const id = def.numbered
+      ? `${base}${type}-${nextNumber(dir, `${base}${type}`)}-${slug}`
+      : `${base}${slug}`;
+    const file = path.join(dir, `${id}.md`);
+    if (fs.existsSync(file)) throw new Error(`already exists: ${file}`);
 
-  const body =
-    `\n# ${title ?? titleCase(slug)}\n\n` +
-    def.sections.map(([h, hint]) => `## ${h}\n\n<!-- ${hint} -->\n`).join("\n");
-  fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(file, stringify(data, body));
-  return { id, file };
+    const data = {
+      id,
+      type,
+      project,
+      stack,
+      status: "draft",
+      depends_on: depends.map((d) => `[[${d}]]`),
+    };
+    if (type === "spec") data.anchors = [];
+    if (type === "lesson") data.enforced = "false";
+
+    const body =
+      `\n# ${title ?? titleCase(slug)}\n\n` +
+      def.sections.map(([h, hint]) => `## ${h}\n\n<!-- ${hint} -->\n`).join("\n");
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(file, stringify(data, body), { flag: "wx" });
+    return { id, file };
+  }
 }
 
 function mustDoc(vault, id) {
@@ -113,7 +118,7 @@ function mustDoc(vault, id) {
 }
 
 function write(doc, data, body) {
-  fs.writeFileSync(doc.file, stringify(data, body));
+  writeAtomic(doc.file, stringify(data, body));
 }
 
 export function setTask(vault, specId, bid, state, test) {
@@ -140,7 +145,20 @@ export function addAnchors(vault, specId, relPaths) {
   if (!repo) throw new Error(`project '${doc.data.project}' has no repo mapped; run \`brain map\``);
   const current = new Map((doc.data.anchors ?? []).map((a) => [a.slice(0, a.lastIndexOf("@")), a]));
   for (const p of relPaths) current.set(p, anchorFor(repo, p));
-  write(doc, { ...doc.data, anchors: [...current.values()] }, doc.body);
+  const at = gitPoint(repo);
+  write(doc, { ...doc.data, anchors: [...current.values()], ...(at ? { verified_at: at } : {}) }, doc.body);
+}
+
+// "branch@shortsha" of the repo right now, or null outside git.
+export function gitPoint(repo) {
+  try {
+    const run = (a) => execFileSync("git", ["-C", repo, ...a], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+    const sha = run(["rev-parse", "--short", "HEAD"]);
+    const branch = run(["rev-parse", "--abbrev-ref", "HEAD"]);
+    return `${branch}@${sha}`;
+  } catch {
+    return null;
+  }
 }
 
 // Active specs whose anchored code changed or vanished.
@@ -157,7 +175,7 @@ export function findStale(vault) {
       continue;
     }
     const problems = checkAnchors(repo, anchors);
-    if (problems.length) out.push({ id: d.data.id, problems });
+    if (problems.length) out.push({ id: d.data.id, problems, verified_at: d.data.verified_at ?? null, now: gitPoint(repo) });
   }
   return out;
 }
@@ -178,7 +196,8 @@ export function verifySpec(vault, specId) {
   if (!repo) throw new Error(`project '${doc.data.project}' has no repo mapped`);
   const anchors = (doc.data.anchors ?? []).map((a) => anchorFor(repo, a.slice(0, a.lastIndexOf("@"))));
   const status = doc.data.status === "needs-review" ? "active" : doc.data.status;
-  write(doc, { ...doc.data, anchors, status }, doc.body);
+  const at = gitPoint(repo);
+  write(doc, { ...doc.data, anchors, status, ...(at ? { verified_at: at } : {}) }, doc.body);
 }
 
 

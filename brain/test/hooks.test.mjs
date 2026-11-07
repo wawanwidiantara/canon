@@ -136,3 +136,30 @@ test("stop: opt-in quality checks block on failure and stay quiet when off", () 
   assert.match(r, /FAIL fakelint/);
   assert.match(r, /lint exploded/);
 });
+
+test("stop: docs edited this session count even after a mid-session sync cleaned the vault", () => {
+  const { vault, repo, spec } = fixture();
+  fs.writeFileSync(path.join(repo, "src/b.php"), "new\n"); // code changed
+  const since = Date.now() - 60000; // session started a minute ago
+  // without a session marker the vault looks clean, so the gate blocks
+  assert.equal(stopReasons(vault, "demo").filter((r) => r.includes("no doc changed")).length, 1);
+  // the spec was edited after the session began, then committed by `brain sync`
+  const future = new Date(Date.now() + 5000);
+  fs.appendFileSync(spec.file, "\n<!-- edited -->\n");
+  fs.utimesSync(spec.file, future, future);
+  sh(vault, "add", "-A");
+  sh(vault, "commit", "-qm", "sync");
+  assert.deepEqual(stopReasons(vault, "demo", { since }).filter((r) => r.includes("no doc changed")), []);
+  // docs untouched since a later start: gate fires again
+  assert.equal(stopReasons(vault, "demo", { since: Date.now() + 60000 }).filter((r) => r.includes("no doc changed")).length, 1);
+});
+
+test("hooks survive a broken vault without failing the session", () => {
+  const { repo } = fixture();
+  const bad = fs.mkdtempSync(path.join(os.tmpdir(), "brainbad-"));
+  fs.writeFileSync(path.join(bad, "brain.config.json"), "{ not json");
+  for (const h of ["session-start.mjs", "stop.mjs", "pre-compact.mjs", "pre-tool-use.mjs", "session-end.mjs"]) {
+    const r = runHook(h, { cwd: repo, tool_name: "Bash", tool_input: { command: "ls" } }, bad);
+    assert.equal(r.status, 0, `${h}: ${r.stderr}`);
+  }
+});

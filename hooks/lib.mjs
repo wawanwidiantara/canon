@@ -21,3 +21,13 @@ export function target(input) {
     return null;
   }
 }
+
+// Hooks must never break a session: any crash exits quietly with code 0.
+export function guard(fn) {
+  try {
+    fn();
+  } catch (e) {
+    process.stderr.write(`brain hook: ${e?.message ?? e}\n`);
+    process.exit(0);
+  }
+}

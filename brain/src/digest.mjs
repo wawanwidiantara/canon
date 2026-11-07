@@ -2,6 +2,7 @@
 // LLM. The retro skill reads digests instead of raw transcripts, which are huge.
 import fs from "node:fs";
 import path from "node:path";
+import { scrubDeep } from "./scrub.mjs";
 
 const CORRECTION_RE =
   /^(no\b|nope|wrong|stop\b|don'?t|dont|not\b|that'?s not|actually|why (did|do|are|is)|undo|revert|i said|i told|you (forgot|missed|should|didn'?t|did not))|\b(wrong|incorrect|not what i|that is not|you forgot|again\?)\b/i;
@@ -129,7 +130,7 @@ export function saveDigest(vault, project, digest) {
   const dir = digestDir(vault, project);
   fs.mkdirSync(dir, { recursive: true });
   const file = path.join(dir, `${digest.session_id ?? Date.now()}.json`);
-  fs.writeFileSync(file, JSON.stringify(digest, null, 1) + "\n");
+  fs.writeFileSync(file, JSON.stringify(scrubDeep(digest), null, 1) + "\n");
   return file;
 }
 
@@ -201,4 +202,43 @@ export function retroReport(digests, { max = 6000 } = {}) {
   }
   const text = L.join("\n");
   return text.length > max ? text.slice(0, max) + "\n… (truncated)" : text;
+}
+
+// ISO week label like "2026-W45" for a timestamp.
+export function weekOf(ts) {
+  const d = new Date(ts);
+  if (Number.isNaN(d.getTime())) return "unknown";
+  const t = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  const day = t.getUTCDay() || 7;
+  t.setUTCDate(t.getUTCDate() + 4 - day);
+  const week = Math.ceil(((t - Date.UTC(t.getUTCFullYear(), 0, 1)) / 86400000 + 1) / 7);
+  return `${t.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
+}
+
+// Where the tokens went: per week, plus the costliest sessions.
+export function usageReport(digests, { top = 5 } = {}) {
+  if (!digests.length) return "No session digests yet. They are written when a session ends in a mapped repo.";
+  const weeks = new Map();
+  for (const d of digests) {
+    const w = weekOf(d.started);
+    const x = weeks.get(w) ?? { sessions: 0, turns: 0, out: 0, fresh: 0, read: 0, errors: 0 };
+    x.sessions++;
+    x.turns += d.human_turns;
+    x.out += d.tokens.output;
+    x.fresh += d.tokens.input + d.tokens.cache_write;
+    x.read += d.tokens.cache_read;
+    x.errors += d.errors.length;
+    weeks.set(w, x);
+  }
+  const n = (v) => Number(v).toLocaleString("en-US");
+  const L = ["week       sessions  turns  output   fresh-in  cache-read  errors"];
+  for (const [w, x] of [...weeks].sort()) L.push(`${w.padEnd(10)} ${String(x.sessions).padStart(8)}  ${String(x.turns).padStart(5)}  ${n(x.out).padStart(7)}  ${n(x.fresh).padStart(8)}  ${n(x.read).padStart(10)}  ${String(x.errors).padStart(6)}`);
+  const costly = [...digests].sort((a, b) => b.tokens.output + b.tokens.input + b.tokens.cache_write - (a.tokens.output + a.tokens.input + a.tokens.cache_write)).slice(0, top);
+  L.push("", `Costliest sessions (output + fresh input):`);
+  for (const d of costly) L.push(`- ${(d.started ?? "").slice(0, 10)} ${String(d.session_id).slice(0, 8)} ${n(d.tokens.output + d.tokens.input + d.tokens.cache_write)} tokens, ${d.human_turns} turns: ${clip(d.title ?? "", 60)}`);
+  const tools = new Map();
+  for (const d of digests) for (const [k, v] of Object.entries(d.tools)) tools.set(k, (tools.get(k) ?? 0) + v);
+  L.push("", `Most used tools: ${[...tools].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([k, v]) => `${k} ${v}`).join(", ")}`);
+  L.push("Note: cache-read tokens are re-reading the conversation each turn; they are the cheapest kind, but a long session makes every turn re-read more.");
+  return L.join("\n");
 }
