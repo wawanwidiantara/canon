@@ -60,18 +60,19 @@ Install Quicksilver yourself, keep its key in `~/.quicksilver/config.json` (not 
 
 ## Opt-in subagents
 
-Canon works with one agent. Two subagents ship with the plugin for when a fresh context is worth the extra tokens. Both are off by default; a `PreToolUse` hook blocks them until you enable them in `canon.config.json`:
+Canon works with one agent. Three subagents ship with the plugin for when a fresh context is worth the extra tokens. All are off by default; a `PreToolUse` hook blocks them until you enable them in `canon.config.json`:
 
 ```json
-"agents": { "reviewer": true, "researcher": true }
+"agents": { "reviewer": true, "researcher": true, "spec-reviewer": true }
 ```
 
 | Agent | Use | Returns |
 |---|---|---|
 | `canon:reviewer` | Read-only check of one spec against its code and tests, by an agent that did not write the code. The `flow` skill offers it when closing a phase. | One line per behavior (`ok`, `gap`, `missing`, `drift`) with `path:line`, and a verdict. |
 | `canon:researcher` | Reads docs and sources in its own context. The `research` skill offers it. | A short list of claims, each labelled `verified`, `secondary` or `memory`, with a source. |
+| `canon:spec-reviewer` | Cold read of one newly written draft spec before it is approved. It reads only the spec and the docs it depends on, never the code. The `flow` skill offers it at the spec step. | One line per finding, naming the behavior or section, and a verdict (`ready` or `fix first`). |
 
-Neither agent edits files or approves anything. The session brief lists the enabled ones, and skills use them only then. Each spawn starts cold, so expect a review to cost roughly as much as reading the spec and its code once more.
+No agent edits files or approves anything. The session brief lists the enabled ones, and skills use them only then. Each spawn starts cold, so expect a review to cost roughly as much as reading the spec and its code once more.
 
 ## Parallel work
 

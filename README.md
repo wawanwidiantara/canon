@@ -37,7 +37,7 @@ More in [docs/philosophy.md](docs/philosophy.md).
 
 ## Small on purpose
 
-Most setups end in one of two places: instruction files that grow until nobody reads them, or a multi-agent framework that costs more tokens than the work. Canon uses one agent per task, plus two optional subagents (an independent reviewer and a researcher) that stay off until you enable them. Everything that does not need judgment, such as validating docs, hashing code, running mutation tests, linting, searching and syncing, is a script that costs no tokens when it passes. The model spends its tokens on research, design decisions and code.
+Most setups end in one of two places: instruction files that grow until nobody reads them, or a multi-agent framework that costs more tokens than the work. Canon uses one agent per task, plus three optional subagents (an independent reviewer, a researcher and a cold-read spec reviewer) that stay off until you enable them. Everything that does not need judgment, such as validating docs, hashing code, running mutation tests, linting, searching and syncing, is a script that costs no tokens when it passes. The model spends its tokens on research, design decisions and code.
 
 | Piece | What it does |
 |---|---|

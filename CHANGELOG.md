@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Opt-in subagent `canon:spec-reviewer`: a cold read of a newly written draft spec before it is approved. It reads only the spec and its `depends_on` docs, returns one line per finding and a verdict, and stays off until `agents.spec-reviewer` is true. The `flow` skill offers it at the spec step.
+
 ## 0.1.10
 
 - `canon qs`: the one way to run Quicksilver in a mapped project. It checks the project setting, the API host (`quicksilverHosts`) and the input paths (no secrets files, nothing outside the repo, no `--no-secrets-guard`) in code. The hook now denies every direct call in a mapped project, even an allowed one, instead of trying to recognize each spelling. The `research`, `untangle` and `debug` skills use it for large inputs where it is allowed. `canon doctor` reports the key and base URL.
