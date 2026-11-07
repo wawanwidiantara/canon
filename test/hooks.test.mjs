@@ -6,7 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { addAnchors, init, mapProject, newDoc } from "../src/ops.mjs";
-import { projectForCwd, shouldBlock, stopReasons, sessionBrief } from "../src/context.mjs";
+import { markSession, projectForCwd, sessionBrief, sessionStartCode, sessionStartMs, shouldBlock, stopReasons } from "../src/context.mjs";
 import { loadConfig } from "../src/vault.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -162,4 +162,14 @@ test("hooks survive a broken vault without failing the session", () => {
     const r = runHook(h, { cwd: repo, tool_name: "Bash", tool_input: { command: "ls" } }, bad);
     assert.equal(r.status, 0, `${h}: ${r.stderr}`);
   }
+});
+
+test("stop: changes already in the repo when the session began do not trigger the docs gate", () => {
+  const { vault, repo } = fixture();
+  fs.writeFileSync(path.join(repo, "src/a.php"), "edited before the session\n");
+  markSession(vault, "demo", `s-${Date.now()}`);
+  const opts = () => ({ since: sessionStartMs(vault, "demo"), baseCode: sessionStartCode(vault, "demo") });
+  assert.deepEqual(stopReasons(vault, "demo", opts()), []);
+  fs.writeFileSync(path.join(repo, "src/b.php"), "written during the session\n");
+  assert.equal(stopReasons(vault, "demo", opts()).filter((r) => r.includes("no doc changed")).length, 1);
 });

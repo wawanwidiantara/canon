@@ -154,6 +154,8 @@ const tmpFile = (kind, key) =>
 
 // Session start marker, so "did docs change this session" does not depend on git
 // state (a mid-session `canon sync` commits the docs and would hide the edit).
+// It also records the repo's uncommitted-change fingerprint, so changes that were
+// already there when the session began do not count as this session's work.
 // Kept per repo; an unchanged session id (compaction, resume) keeps the first time.
 export function markSession(vault, project, sessionId) {
   const repo = repoFor(loadConfig(vault), project);
@@ -164,17 +166,20 @@ export function markSession(vault, project, sessionId) {
   } catch {
     // first session for this repo
   }
-  fs.writeFileSync(f, JSON.stringify({ id: sessionId ?? "none", ms: Date.now() }));
+  fs.writeFileSync(f, JSON.stringify({ id: sessionId ?? "none", ms: Date.now(), code: gitState(repo) }));
 }
 
-export function sessionStartMs(vault, project) {
+function sessionMarker(vault, project) {
   const repo = repoFor(loadConfig(vault), project);
   try {
-    return JSON.parse(fs.readFileSync(tmpFile("session", repo), "utf8")).ms;
+    return JSON.parse(fs.readFileSync(tmpFile("session", repo), "utf8"));
   } catch {
-    return null;
+    return {};
   }
 }
+
+export const sessionStartMs = (vault, project) => sessionMarker(vault, project).ms ?? null;
+export const sessionStartCode = (vault, project) => sessionMarker(vault, project).code ?? null;
 
 export function docsTouchedSince(vault, project, ms) {
   const root = path.join(vault, "projects", project);
@@ -204,7 +209,7 @@ function skipped(repo, state) {
 }
 
 // Why the turn should not end yet, or [] if fine.
-export function stopReasons(vault, project, { since = null } = {}) {
+export function stopReasons(vault, project, { since = null, baseCode = null } = {}) {
   const reasons = [];
   const findings = projectFindings(vault, project);
   if (findings.length) reasons.push(`canon validate found ${findings.length} problem(s):\n${findings.slice(0, 8).map((f) => `- ${f}`).join("\n")}`);
@@ -217,7 +222,7 @@ export function stopReasons(vault, project, { since = null } = {}) {
   const touched = since != null ? docsTouchedSince(vault, project, since) : null;
   const docsChanged = (docs !== null && docs !== "") || touched === true;
   const known = docs !== null || touched !== null;
-  if (code && known && !docsChanged && !skipped(repo, code)) {
+  if (code && code !== baseCode && known && !docsChanged && !skipped(repo, code)) {
     reasons.push(
       `Code changed in ${repo} but no doc changed under projects/${project}. Update or create the spec (\`canon new spec ${project} <slug>\`, \`canon task\`, \`canon anchor\`). If these changes need no doc, run \`canon skip-docs\` in the repo.`,
     );
