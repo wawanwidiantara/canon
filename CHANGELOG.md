@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.6 (unreleased)
+## 0.1.7
 
 First public version, named Canon.
 
