@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 <!-- Adapted from mattpocock/skills `retro` (MIT, Matt Pocock). -->
 
-You are improving the agent's **environment** (checks, docs, skills, hooks), not the code. The aim is that a mistake made once is made zero times after.
+You are improving the agent's **environment** (checks, docs, skills, hooks), not the code. The aim is that no mistake happens twice.
 
 ## Get the evidence
 
@@ -40,4 +40,4 @@ A correction by the user is the strongest signal: it is a mistake that got past 
 
 Show the candidates in order of severity, each with: evidence, proposed fix, where it goes, and its token cost or saving if known. Apply nothing until the user approves each item. After applying, run `canon validate`, then `canon retro --done`.
 
-Keep the list short. Three fixes that land beat ten that do not.
+Keep the list short. Apply the few fixes that will hold, not every idea.

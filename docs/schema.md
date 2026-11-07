@@ -6,7 +6,7 @@ The source of truth is `src/schema.mjs`. This page explains it.
 
 ```
 <vault>/
-  canon.config.json            shared via git: schema_version, sync settings, projects -> { remote, checks, mutation, quicksilver }
+  canon.config.json            shared via git: schema_version, sync, ratify, agents, projects -> { remote, checks, mutation, quicksilver }
   .canon/local.json            per device, not committed: projects -> { repo: /abs/path }
   00_global_standards/         type global-rule, project "global", bare id
   projects/<slug>/
@@ -60,7 +60,3 @@ This catches code that moved under a spec. It cannot catch prose that was alread
 ## Devices
 
 The vault is its own git repo. `canon.config.json` is shared; repo paths are per device in `.canon/local.json`. A project's repo is identified by its normalized git remote (`github.com/owner/repo`; ssh host aliases are folded), so the same project is found on any device. Anchor hashes fold CRLF to LF, so a Windows and a Linux checkout agree.
-
-## Not built yet
-
-`canon query` and the SQLite index, the session digest and retro, more curated skills.

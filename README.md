@@ -5,7 +5,7 @@
 [![Node](https://img.shields.io/badge/node-%E2%89%A522.13-339933?style=flat-square)](#requirements)
 [![Linux macOS Windows](https://img.shields.io/badge/platform-linux%20%7C%20macos%20%7C%20windows-lightgrey?style=flat-square)](#requirements)
 
-**Give Claude Code a record of what each project has decided that stays true to the code, learns from its own mistakes, and spends few tokens.**
+**Give Claude Code a record of what each project has decided, checked against the code, that learns from your corrections and spends few tokens.**
 
 Canon is a Claude Code plugin and a small `canon` command. The canon is the set of specs, decisions and lessons you have ratified, kept in one private git repo, the *vault*, never inside your app repos. Hooks keep the docs in step with the code. Scripts do the checking, so the model only reads what failed. A retro turns the mistakes you keep correcting into checks that stop them.
 
@@ -36,7 +36,7 @@ More in [docs/philosophy.md](docs/philosophy.md).
 
 ## Small on purpose
 
-Most setups end in one of two places: instruction files that grow until nobody reads them, or a multi-agent framework that costs more tokens than the work. Canon is the middle option. There is one agent, with two optional subagents (an independent reviewer and a researcher) that are off until you turn them on. Everything that does not need judgment, such as validating docs, hashing code, running mutation tests, linting, searching and syncing, is a script that costs no tokens when it passes. The model spends its tokens on research, design decisions and code.
+Most setups end in one of two places: instruction files that grow until nobody reads them, or a multi-agent framework that costs more tokens than the work. Canon uses one agent, plus two optional subagents (an independent reviewer and a researcher) that stay off until you enable them. Everything that does not need judgment, such as validating docs, hashing code, running mutation tests, linting, searching and syncing, is a script that costs no tokens when it passes. The model spends its tokens on research, design decisions and code.
 
 | Piece | What it does |
 |---|---|
@@ -100,7 +100,7 @@ For a repo that already has code, run the `onboard` skill once. Then start work 
 
 ## Status
 
-Version 0.1. Honest limits:
+Version 0.1. Known limits:
 
 - It runs on any stack, but mutation and quality tools differ in how well they are tested here. The git, codegraph and `jscpd` handling was run against the real tools. The Pest, Infection and cargo-mutants commands follow their documentation but have not been run here. Several others, such as the Stryker, Dart, mutmut, PIT, knip and OpenGrep commands, were written from partial docs and are marked "flags unverified" in their output.
 - The hooks were verified in headless Claude Code sessions on Linux. The tests run on Linux, macOS and Windows in CI. Everything else about Windows and macOS is from reading the platform rules.
@@ -109,13 +109,13 @@ Version 0.1. Honest limits:
 
 ## Credits
 
-This project stands on other people's work. Several skills are adapted from, and many ideas come directly from:
+Several skills are adapted from other people's work, and many ideas come from it:
 
 - **Matt Pocock**, [mattpocock/skills](https://github.com/mattpocock/skills) (MIT): grilling, spec and ticket flow, TDD, retro, and the rule that specs avoid file paths and code snippets.
 - **Robert C. Martin (Uncle Bob)**, [unclebob/ub-mode](https://github.com/unclebob/ub-mode) (MIT): the reduced-principles coding mode.
 - **Lauren Tan (poteto)**, [pstack](https://github.com/cursor/plugins/tree/main/pstack) in cursor/plugins (MIT): `correct`, `unslop`, and the approach of turning repeated mistakes into structural checks.
 
-Where a skill here is adapted from one of these, its file says so, and the original license applies to the copied parts. Thank you.
+Where a skill here is adapted from one of these, its file says so, and the original license applies to the copied parts.
 
 ## Contributing and security
 
