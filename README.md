@@ -79,11 +79,13 @@ canon setup ~/canon-vault
 canon map my-app ~/code/my-app
 ```
 
-The plugin puts `canon` on the PATH of Claude Code's own shell only. Inside Claude Code, run it with a `!` prefix, for example `! canon doctor`. In a regular terminal `canon` is not found until you clone this repo and link it:
+The plugin puts `canon` on the PATH of Claude Code's own shell only. Inside Claude Code, run it with a `!` prefix, for example `! canon doctor`. In a regular terminal, install the same command globally:
 
 ```bash
-git clone https://github.com/wawanwidiantara/canon && cd canon && npm link
+npm install -g github:wawanwidiantara/canon
 ```
+
+To work on Canon itself, clone the repo and run `npm link` instead.
 
 Add `Bash(canon:*)` to `permissions.allow` in your Claude Code settings so the agent can run the CLI without a prompt each time. Plugins cannot ship permission rules.
 
