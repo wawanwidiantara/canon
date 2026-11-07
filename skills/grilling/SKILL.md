@@ -23,6 +23,7 @@ Every question follows these rules:
 - `header` is a short topic word. The question ends with a question mark and states the stake: what breaks if this is wrong, and how costly it is to reverse.
 - A choice that needs free text (a name, a number) is asked in plain text with your recommended value.
 - Never ask a question whose answer depends on one still open in the same round. It waits for the next round.
+- Say each choice in terms of what the user sees or does: a command, a result, a file they open. Do not use function, variable or file names unless the user used them first.
 
 ## 3. Act on the answer
 

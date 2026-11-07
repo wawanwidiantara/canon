@@ -31,6 +31,16 @@ Follow the steps in order. Scale to the size of the change, and stop at each mar
    - `canon complete <phase-id>` (it refuses if a behavior is open or a spec is stale), then `canon validate`.
 8. **Learn.** If the user corrected you or a check caught something twice, tell them it is worth a `retro`. Do not run it unasked.
 
+## Do not ask to proceed
+
+Once the user has confirmed the grilling or agreed to a plan, carry out the whole chain (spec, phase, claim, build, land, re-verify the specs it made stale, sync) without asking whether to start the next step. Stop only for:
+
+- a gate the user has left on: the spec read at step 4, and any `canon approve` the hook asks about;
+- a failure, or a result that differs from the plan;
+- an outward action nobody asked for, such as a push or a release.
+
+Approving a phase is not a second question when the phase only lists behaviors of a spec the user already approved. Report at the end, not at each step.
+
 ## Budget rules
 
 - One step per session when it is long. Finish the step, write what you decided into the docs, and suggest `/clear`. The next session resumes from the session-start brief, not from this conversation.

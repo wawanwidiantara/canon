@@ -43,7 +43,7 @@ Ask one question of each piece: should these change together? There are three wa
 
 Also list every **special case**: code that exists for one situation and does not follow from how the system works. Examples are an `if` for one value, a parameter for one caller, a swallowed exception, a retry or sleep, and a disabled test. Each one is a requirement the design missed.
 
-Write each problem as one line with `path:line` and what is wrong. Do not change anything yet.
+Write each problem as one line with `path:line` and what is wrong. Before it goes in the audit, check it against the code that reads or writes the thing: confirm the count of copies, and confirm the convention is not just how the parser or the framework works. Drop what does not hold. Do not change anything yet.
 
 ## 3. Group under fixes
 
