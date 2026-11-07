@@ -22,6 +22,7 @@ Follow the steps in order. Scale to the size of the change, and stop at each mar
 7. **Close the phase.**
    - `mutation-testing` on the changed files, then add the tests that matter.
    - `quality-check`, fix real findings.
+   - Optional, if the session brief lists `canon:reviewer`: spawn it with the spec id for an independent check of each behavior against the code, and fix every `gap`, `missing` and `drift` it reports. Skip this step when it is not listed; do not ask the user to enable it.
    - `canon stale`; for each stale spec re-read it against the code, fix it, `canon verify <spec-id>`.
    - `canon complete <phase-id>` (it refuses if a behavior is open or a spec is stale), then `canon validate`.
 8. **Learn.** If the user corrected you or a check caught something twice, tell them it is worth a `retro`. Do not run it unasked.

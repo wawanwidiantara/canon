@@ -5,7 +5,7 @@ description: Investigate a question against primary sources and record the findi
 
 <!-- Adapted from mattpocock/skills `research` (MIT, Matt Pocock). -->
 
-Research is the most expensive kind of session, so keep it in its own session and keep it narrow. There are no sub-agents here.
+Research is the most expensive kind of session, so keep it in its own session and keep it narrow. Work in this session by default. If the session brief lists `canon:researcher`, you may hand the reading to it: give it the question and the decision it feeds, then record its answer in step 6. It returns a short sourced list, so the pages it read never enter this context.
 
 1. **Check what exists.** `canon query <topic>`. Do not research what a spec, ADR or discovery doc already answers.
 2. **State the question** in one or two sentences, and what decision it feeds.

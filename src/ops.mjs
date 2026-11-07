@@ -51,7 +51,7 @@ export function init(vault, { git = true } = {}) {
   const cfg = path.join(vault, "canon.config.json");
   const ignore = path.join(vault, ".gitignore");
   if (!fs.existsSync(ignore)) fs.writeFileSync(ignore, ".canon/\n");
-  if (!fs.existsSync(cfg)) fs.writeFileSync(cfg, JSON.stringify({ schema_version: 1, projects: {}, sync: { pullOnStart: true, digests: false }, ratify: "ask" }, null, 2) + "\n");
+  if (!fs.existsSync(cfg)) fs.writeFileSync(cfg, JSON.stringify({ schema_version: 1, projects: {}, sync: { pullOnStart: true, digests: false }, ratify: "ask", agents: { reviewer: false, researcher: false } }, null, 2) + "\n");
 }
 
 // Maps a project to a repo on this device. The repo's git remote is recorded in

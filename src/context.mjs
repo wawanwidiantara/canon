@@ -110,6 +110,8 @@ export function sessionBrief(vault, project, { pull = null } = {}) {
     if (cg.index && cg.wired.length) lines.push("Code graph is available: for \"how does X work\" or \"where is X used\" questions, call `codegraph_explore` before grepping.");
     if (loadConfig(vault).projects?.[project]?.quicksilver === true) lines.push("Quicksilver (`qs`) is allowed in this project for bulk fuzzy triage; do not use it for decisions.");
   }
+  const agents = Object.entries(loadConfig(vault).agents ?? {}).filter(([, v]) => v === true).map(([k]) => k);
+  if (agents.length) lines.push(`Opt-in subagents enabled: ${agents.map((a) => `canon:${a}`).join(", ")}. Use them only where a skill says to.`);
   if (pull && !pull.ok && pull.skipped) lines.push(`Vault sync: ${pull.skipped}.`);
   const vs = vaultState(vault);
   if (vs.git && vs.hasRemote && vs.ahead > 0) lines.push(`Vault has ${vs.ahead} commit(s) not pushed; \`canon sync\` publishes them.`);

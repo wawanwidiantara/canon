@@ -6,7 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { apply, inspect, plan, wiring } from "../src/codegraph.mjs";
-import { isQuicksilverCall, isRatification, quicksilverDenial, ratificationPrompt } from "../src/gate.mjs";
+import { agentDenial, isQuicksilverCall, isRatification, quicksilverDenial, ratificationPrompt } from "../src/gate.mjs";
 import { init, mapProject } from "../src/ops.mjs";
 import { sessionBrief } from "../src/context.mjs";
 
@@ -165,4 +165,28 @@ test("pre-tool-use hook asks for approve, denies qs first, and honours ratify=au
   cfg.ratify = "auto";
   fs.writeFileSync(cfgPath, JSON.stringify(cfg));
   assert.equal(run("canon approve demo-spec-001-x").stdout, "");
+});
+
+test("agent gate: plugin agents are blocked unless enabled, other agents pass", () => {
+  assert.match(agentDenial({}, "canon:reviewer"), /opt-in/);
+  assert.match(agentDenial({ agents: { reviewer: true } }, "canon:researcher"), /agents\.researcher/);
+  assert.equal(agentDenial({ agents: { reviewer: true } }, "canon:reviewer"), null);
+  assert.equal(agentDenial({ agents: { reviewer: "yes" } }, "canon:reviewer") !== null, true);
+  for (const t of ["Explore", "general-purpose", "other:reviewer", "canon:unknown", undefined]) assert.equal(agentDenial({}, t), null, String(t));
+});
+
+test("pre-tool-use hook gates canon subagents, even in an unmapped repo", () => {
+  const root = tmp();
+  const vault = path.join(root, "vault");
+  init(vault);
+  const run = (subagent_type) =>
+    spawnSync("node", [path.join(ROOT, "hooks/pre-tool-use.mjs")], { input: JSON.stringify({ cwd: root, tool_name: "Agent", tool_input: { subagent_type } }), env: { ...process.env, CANON_VAULT: vault }, encoding: "utf8" });
+  assert.equal(JSON.parse(run("canon:reviewer").stdout).hookSpecificOutput.permissionDecision, "deny");
+  assert.equal(run("Explore").stdout, "");
+  const cfgFile = path.join(vault, "canon.config.json");
+  const cfg = JSON.parse(fs.readFileSync(cfgFile, "utf8"));
+  cfg.agents.reviewer = true;
+  fs.writeFileSync(cfgFile, JSON.stringify(cfg));
+  assert.equal(run("canon:reviewer").stdout, "");
+  assert.equal(JSON.parse(run("canon:researcher").stdout).hookSpecificOutput.permissionDecision, "deny");
 });

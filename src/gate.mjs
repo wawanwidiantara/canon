@@ -27,3 +27,14 @@ export function ratificationPrompt(config, project, command) {
     ? "Approving makes this doc canon: later work will treat it as decided. Confirm only if you have read it."
     : "Superseding retires a canon doc in favour of another. Confirm only if you agree with the replacement.";
 }
+
+// Opt-in subagents. They cost extra tokens, so the plugin's agents are blocked
+// unless canon.config.json enables them: "agents": { "reviewer": true, "researcher": true }.
+export const AGENTS = ["reviewer", "researcher"];
+
+export function agentDenial(config, subagentType) {
+  const m = /^canon:([\w-]+)$/.exec(String(subagentType ?? ""));
+  if (!m || !AGENTS.includes(m[1])) return null;
+  if (config?.agents?.[m[1]] === true) return null;
+  return `Blocked: the ${m[1]} subagent is opt-in because it spends extra tokens, and it is not enabled. Do the work in this session instead. To allow it, set agents.${m[1]} = true in the vault's canon.config.json.`;
+}

@@ -52,3 +52,19 @@ With `onStop: true` the fast checks run when a turn ends and the agent is stoppe
 ```
 
 Install Quicksilver yourself and keep it away from code you may not share.
+
+## Opt-in subagents
+
+Canon works with one agent. Two subagents ship with the plugin for when a fresh context is worth the extra tokens. Both are off by default; a `PreToolUse` hook blocks them until you enable them in `canon.config.json`:
+
+```json
+"agents": { "reviewer": true, "researcher": true }
+```
+
+| Agent | Use | Returns |
+|---|---|---|
+| `canon:reviewer` | Read-only check of one spec against its code and tests, by an agent that did not write the code. The `flow` skill offers it when closing a phase. | One line per behavior (`ok`, `gap`, `missing`, `drift`) with `path:line`, and a verdict. |
+| `canon:researcher` | Reads docs and sources in its own context. The `research` skill offers it. | A short list of claims, each labelled `verified`, `secondary` or `memory`, with a source. |
+
+Neither agent edits files or approves anything. The session brief lists the enabled ones, and skills use them only then. Each spawn starts cold, so expect a review to cost roughly as much as reading the spec and its code once more.
+

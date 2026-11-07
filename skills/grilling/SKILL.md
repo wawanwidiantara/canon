@@ -9,7 +9,7 @@ Interview the user until you share an understanding. Follow this procedure exact
 
 ## 1. Prepare (no questions yet)
 
-- Look up facts yourself: the spec, ADRs, the code (code graph or grep, only the files you need). Never ask the user for something you can find. There are no sub-agents; one agent, small budget.
+- Look up facts yourself: the spec, ADRs, the code (code graph or grep, only the files you need). Never ask the user for something you can find. Grilling never uses sub-agents: the user is the other half of the conversation.
 - In a mapped project, open the grill log: `canon new discovery <project> grill-<topic>`. Its Findings section is the decision ledger, so decisions survive compaction and new sessions. If a grill log for this topic exists, read it and continue from it.
 - Print the design tree once: a short indented list of the decisions to settle, grouped by dependency. Mark nothing as decided yet.
 
