@@ -37,7 +37,7 @@ More in [docs/philosophy.md](docs/philosophy.md).
 
 ## Small on purpose
 
-Most setups end in one of two places: instruction files that grow until nobody reads them, or a multi-agent framework that costs more tokens than the work. Canon uses one agent, plus two optional subagents (an independent reviewer and a researcher) that stay off until you enable them. Everything that does not need judgment, such as validating docs, hashing code, running mutation tests, linting, searching and syncing, is a script that costs no tokens when it passes. The model spends its tokens on research, design decisions and code.
+Most setups end in one of two places: instruction files that grow until nobody reads them, or a multi-agent framework that costs more tokens than the work. Canon uses one agent per task, plus two optional subagents (an independent reviewer and a researcher) that stay off until you enable them. Everything that does not need judgment, such as validating docs, hashing code, running mutation tests, linting, searching and syncing, is a script that costs no tokens when it passes. The model spends its tokens on research, design decisions and code.
 
 | Piece | What it does |
 |---|---|
@@ -51,6 +51,8 @@ Most setups end in one of two places: instruction files that grow until nobody r
 | Search | Full-text search and a link graph over the vault, built into Node with no database to run. |
 | Learning | Session digests (no LLM) feed a retro that turns repeated corrections into lint rules, tests and lessons. |
 | Many devices | The vault syncs through its own git remote. A repo is found on any device by its git remote. |
+| Gate | `canon.gate.json` in the repo lists the commands that must pass (`fast` after each step, `full` before merging). `canon gate` runs them, and the Stop hook enforces `fast`. |
+| Parallel work | A phase declares the paths it owns. `canon claim` gives it a git worktree, refusing overlapping paths and unfinished dependencies. A hook blocks edits outside the owned paths, and `canon land` rebases, regenerates, runs the full gate and merges, or stops with the reason. Scripts decide; you start the agents. |
 | Privacy gate | Blocks tools that send your code to a third party, such as Quicksilver, unless you allow it per project. |
 
 The pieces are described in [docs/integrations.md](docs/integrations.md), the commands in [docs/commands.md](docs/commands.md), the vault format in [docs/schema.md](docs/schema.md) and sync in [docs/devices.md](docs/devices.md).
@@ -59,7 +61,7 @@ The pieces are described in [docs/integrations.md](docs/integrations.md), the co
 
 **Use it** when you work alone or in a small group with Claude Code, on several repos, on a limited plan, and you want specs and decisions that survive new sessions, compaction and other machines.
 
-**Skip it** when you want several agents working in parallel, docs that live in each repo and get reviewed in its pull requests, or a shared vault with per-person permissions.
+**Skip it** when you want a router agent that starts and supervises many agents for you (Canon gives you the claim, guard and land steps, not the supervisor), docs that live in each repo and get reviewed in its pull requests, or a shared vault with per-person permissions.
 
 ## Quick start
 

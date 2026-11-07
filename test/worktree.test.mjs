@@ -77,3 +77,21 @@ test("a separate clone of the repo is not treated as a worktree", () => {
   execFileSync("git", ["clone", "-q", repo, clone], { stdio: "ignore" });
   assert.equal(projectForCwd(loadConfig(vault), clone), null);
 });
+
+test("stale --mark refuses inside a worktree and works in the main checkout", async () => {
+  const { vault, repo, wt, spec } = setup();
+  const { markStale } = await import("../src/ops.mjs");
+  fs.writeFileSync(path.join(wt, "src/a.txt"), "changed in worktree\n");
+  const here = process.cwd();
+  try {
+    process.chdir(wt);
+    assert.throws(() => markStale(vault), /refusing to mark docs stale from inside a worktree/);
+    assert.match(fs.readFileSync(spec.file, "utf8"), /status: active/);
+    process.chdir(repo);
+    fs.writeFileSync(path.join(repo, "src/a.txt"), "changed in main\n");
+    assert.deepEqual(markStale(vault).map((s) => s.id), [spec.id]);
+    assert.match(fs.readFileSync(spec.file, "utf8"), /status: needs-review/);
+  } finally {
+    process.chdir(here);
+  }
+});

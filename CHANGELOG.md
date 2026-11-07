@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.9 (unreleased)
+
+- `canon stale --mark` refuses to run inside a worktree, where it would flip shared doc status for a branch.
+- README and integrations docs describe the gate and parallel work.
+
 ## 0.1.8
 
 - Fix: the vault lock now retries on the `EPERM` Windows reports while a lock directory is being deleted; under eight parallel writers one used to fail.

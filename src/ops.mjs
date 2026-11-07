@@ -198,6 +198,15 @@ export function findStale(vault) {
 
 export function markStale(vault) {
   const stale = findStale(vault);
+  // From a linked worktree the stale list describes a branch, not the project, and
+  // the status lives in the shared vault. Marking from here would flip it for every session.
+  const config = loadConfig(vault);
+  for (const s of stale) {
+    const project = findDoc(vault, s.id)?.data?.project;
+    if (project && repoFor(config, project) !== repoFor(config, project, "/")) {
+      throw new Error("refusing to mark docs stale from inside a worktree: the result describes this branch, not the project. Run `canon stale --mark` in the main checkout (after the branch lands).");
+    }
+  }
   for (const s of stale) {
     lockVault(vault, `doc-${s.id}`, () => {
       const doc = mustDoc(vault, s.id);

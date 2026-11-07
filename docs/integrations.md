@@ -68,3 +68,14 @@ Canon works with one agent. Two subagents ship with the plugin for when a fresh 
 
 Neither agent edits files or approves anything. The session brief lists the enabled ones, and skills use them only then. Each spawn starts cold, so expect a review to cost roughly as much as reading the spec and its code once more.
 
+## Parallel work
+
+Several agents can work at once when their phases own different paths. Canon does not start or supervise them; it makes the shared state safe and the hand-offs scripted.
+
+1. A person approves phases that carry `owns: [...]` (see [schema](schema.md)). `canon ready` lists those that can start.
+2. `canon claim <phase-id>` creates the worktree `<repo>-wt/<phase-id>` on branch `canon/<phase-id>`. Start an agent there, for example `claude` in that folder.
+3. Inside it, a PreToolUse hook denies Edit and Write outside the owned paths. `canon check-owns` is the backstop for shell writes.
+4. `canon gate fast` after each step; the Stop hook enforces it.
+5. `canon land <phase-id>` from the main checkout merges it, or stops with the reason and leaves main untouched.
+
+Doc writes are safe across sessions: every read-modify-write of a doc or of the config holds a lock. Claims are device-local (`.canon/claims.json`), so two devices do not coordinate; claim on one.
