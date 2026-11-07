@@ -1,0 +1,14 @@
+{
+  "fast": [],
+  "full": [
+    {
+      "name": "test",
+      "cmd": "npm",
+      "args": [
+        "run",
+        "--silent",
+        "test"
+      ]
+    }
+  ]
+}
