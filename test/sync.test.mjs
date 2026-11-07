@@ -49,8 +49,8 @@ test("repo paths stay out of the shared config and live in .canon/local.json", (
   assert.equal(mapProject(vault, "app", repo), "github.com/me/app");
   const shared = JSON.parse(fs.readFileSync(path.join(vault, "canon.config.json"), "utf8"));
   assert.deepEqual(shared.projects.app, { remote: "github.com/me/app" });
-  assert.equal(loadLocal(vault).projects.app.repo, path.resolve(repo));
-  assert.equal(loadConfig(vault).projects.app.repo, path.resolve(repo));
+  assert.equal(loadLocal(vault).projects.app.repo, fs.realpathSync.native(repo));
+  assert.equal(loadConfig(vault).projects.app.repo, fs.realpathSync.native(repo));
   assert.match(fs.readFileSync(path.join(vault, ".gitignore"), "utf8"), /\.canon\//);
 });
 
