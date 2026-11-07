@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.13
+
+- `canon stale --diff`: for each stale doc, shows the changed lines of its anchored files since the commit it was last confirmed on, cut to 60 lines per file. A deleted file, a missing recorded commit or an unknown commit gets a note instead.
+- `canon anchor` is refused inside a linked worktree, where the hashes would describe the branch and make the spec look stale from the main checkout. Anchor from the main checkout after the land.
+- Fix: `canon codegraph --setup` could not register the MCP server, because the server name came after the `-e` option and `claude` read it as an environment variable.
+- `flow` skill: once a plan is agreed, carry out the whole chain without asking to start each step. `grilling` skill: describe a choice by what the user sees. `untangle` skill: re-check each finding against the code before recording it.
+
 ## 0.1.12
 
 - Internal cleanups with no change in behavior: one stale check and one way to print its problems, a named main-checkout rule in place of a slash argument, the opt-in agent names defined once (a new vault's config is built from them, and a test fails if `agents/` and the list disagree), and the groups of doc statuses named in the schema.
