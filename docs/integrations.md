@@ -1,10 +1,10 @@
 # Mutation testing, quality checks and optional tools
 
-All of these look at the repo's changed files, print little when things pass, and can be overridden per project in the vault's `brain.config.json`.
+All of these look at the repo's changed files, print little when things pass, and can be overridden per project in the vault's `canon.config.json`.
 
-## Mutation testing: `brain mutate`
+## Mutation testing: `canon mutate`
 
-A mutation tool changes your code in small ways and reruns the tests. A mutant that survives means no test noticed. `brain mutate --run` finds the tool for the repo and prints only the survivors and the score.
+A mutation tool changes your code in small ways and reruns the tests. A mutant that survives means no test noticed. `canon mutate --run` finds the tool for the repo and prints only the survivors and the score.
 
 | Stack | Tool | Status |
 |---|---|---|
@@ -25,7 +25,7 @@ A repo with several of these gets one run per tool. Test files are never mutated
 
 `{files}` becomes one argument per changed source file, `{files,}` one comma-joined argument.
 
-## Quality checks: `brain check`
+## Quality checks: `canon check`
 
 The repo's own scripts come first (`lint`, `typecheck`, `analyse`, `check` in `package.json` or `composer.json`). Then, when installed: PHPStan/Larastan, Pint, Rector, tsc, ESLint, knip, `dart`/`flutter analyze`, `go vet`, `cargo clippy`, ruff, `jscpd` and OpenGrep. A pass is one line, a failure its last 25 lines.
 
@@ -41,7 +41,7 @@ With `onStop: true` the fast checks run when a turn ends and the agent is stoppe
 
 ## codegraph
 
-[codegraph](https://github.com/colbymchenry/codegraph) indexes a repo so the agent reads fewer files. `brain codegraph` reports how it is set up for each mapped repo. `--setup` plans only the missing pieces: the index, a per-project MCP registration, and a local git exclude. It never edits files git tracks and skips registration when the server is already wired.
+[codegraph](https://github.com/colbymchenry/codegraph) indexes a repo so the agent reads fewer files. `canon codegraph` reports how it is set up for each mapped repo. `--setup` plans only the missing pieces: the index, a per-project MCP registration, and a local git exclude. It never edits files git tracks and skips registration when the server is already wired.
 
 ## Quicksilver and the privacy gate
 

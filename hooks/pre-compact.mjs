@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { compactNotes } from "../brain/src/context.mjs";
+import { compactNotes } from "../src/context.mjs";
 import { guard, readInput, target } from "./lib.mjs";
 
 guard(() => {

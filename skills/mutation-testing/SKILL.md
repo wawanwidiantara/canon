@@ -10,14 +10,14 @@ Run it once per phase on the changed files, not after every edit. It costs machi
 ## Run
 
 ```
-brain mutate            # prints the command for this repo's tool, scoped to changed files
-brain mutate --run      # runs it and prints only surviving mutants and the score
-brain mutate --base develop --run    # compare against another base branch
+canon mutate            # prints the command for this repo's tool, scoped to changed files
+canon mutate --run      # runs it and prints only surviving mutants and the score
+canon mutate --base develop --run    # compare against another base branch
 ```
 
 It detects the tool from the repo: Pest or Infection (PHP), StrykerJS (TypeScript, JavaScript, Vue: NestJS, Next, React, Node), dart_mutant (Dart, Flutter), cargo-mutants (Rust), mutmut (Python), PIT (Java, Kotlin), Stryker.NET (C#), go-mutesting (Go). A repo with several (for example Laravel plus Vue) gets one run per tool. Test files are never mutated.
 
-Other stack, or a tool you prefer: add an override to the vault's `brain.config.json`, then `brain mutate` uses it:
+Other stack, or a tool you prefer: add an override to the vault's `canon.config.json`, then `canon mutate` uses it:
 
 ```json
 "projects": { "my-app": { "repo": "...", "mutation": { "cmd": "mytool", "args": ["run", "{files}"] } } }

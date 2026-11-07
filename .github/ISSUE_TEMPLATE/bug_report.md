@@ -8,7 +8,7 @@ labels: bug
 
 **Steps to reproduce**
 
-**Output of `brain doctor`**
+**Output of `canon doctor`**
 
 ```text
 ```

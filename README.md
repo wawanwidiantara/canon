@@ -1,34 +1,48 @@
-# Software Factory: a project brain and workflow for Claude Code
+# Canon: what your project has decided, kept true to the code
 
-[![tests](https://img.shields.io/github/actions/workflow/status/wawanwidiantara/software-factory/test.yml?branch=main&label=tests&style=flat-square)](https://github.com/wawanwidiantara/software-factory/actions/workflows/test.yml)
+[![tests](https://img.shields.io/github/actions/workflow/status/wawanwidiantara/canon/test.yml?branch=main&label=tests&style=flat-square)](https://github.com/wawanwidiantara/canon/actions/workflows/test.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%E2%89%A522.13-339933?style=flat-square)](#requirements)
 [![Linux macOS Windows](https://img.shields.io/badge/platform-linux%20%7C%20macos%20%7C%20windows-lightgrey?style=flat-square)](#requirements)
 
-**Give Claude Code a memory of your projects that stays true to the code, learns from its own mistakes, and spends few tokens.**
+**Give Claude Code a record of what each project has decided that stays true to the code, learns from its own mistakes, and spends few tokens.**
 
-Software Factory is a Claude Code plugin and a small `brain` command. Specs, decisions and lessons live in one private git repo, the *vault*, never inside your app repos. Hooks keep the docs in step with the code. Scripts do the checking, so the model only reads what failed. A retro turns the mistakes you keep correcting into checks that stop them.
+Canon is a Claude Code plugin and a small `canon` command. The canon is the set of specs, decisions and lessons you have ratified, kept in one private git repo, the *vault*, never inside your app repos. Hooks keep the docs in step with the code. Scripts do the checking, so the model only reads what failed. A retro turns the mistakes you keep correcting into checks that stop them.
 
 ```text
-/plugin install software-factory --marketplace wawanwidiantara/software-factory
+/plugin install canon --marketplace wawanwidiantara/canon
 ```
 
 ```bash
-brain new spec my-app login            # a spec with every section in place, filled by the agent
-brain task my-app-spec-001-login B1 done --test tests/LoginTest.php::logs_in
-brain stale                            # which specs no longer match the code
-brain query "passwordless login"       # find what you already decided
+canon new spec my-app login            # a spec with every section in place, filled by the agent
+canon task my-app-spec-001-login B1 done --test tests/LoginTest.php::logs_in
+canon stale                            # which specs no longer match the code
+canon query "passwordless login"       # find what you already decided
 ```
+
+## The idea
+
+A canon is the body of work a community accepts as authoritative. For a project that means the specs and decisions you have agreed are true, kept apart from drafts and notes. Seven rules follow from that, and the tool enforces them.
+
+1. **One authority.** The vault is the canon. Research and brainstorming are input, never authority.
+2. **Canon is checked against reality.** A spec records hashes of the code it governs. When that code changes, the spec stops being canon until someone re-confirms it.
+3. **Canon changes by amendment, not erasure.** Docs are superseded and kept. Nothing is deleted or archived.
+4. **A person ratifies it.** The agent drafts. `canon approve` and `canon supersede` ask you to confirm, every time, even if the CLI is otherwise allowed.
+5. **A rule nothing enforces is not canon.** A lesson counts once a lint, test or hook backs it.
+6. **Keep it small.** Agents read the active, relevant part, one section at a time.
+7. **Scripts check, people judge.** Hashing, validating and searching cost no tokens. Tokens go to decisions.
+
+More in [docs/philosophy.md](docs/philosophy.md).
 
 ## Small on purpose
 
-Most setups end in one of two places: instruction files that grow until nobody reads them, or a multi-agent framework that costs more tokens than the work. Software Factory is the middle option. There is one agent. Everything that does not need judgment, such as validating docs, hashing code, running mutation tests, linting, searching and syncing, is a script that costs no tokens when it passes. The model spends its tokens on research, design decisions and code.
+Most setups end in one of two places: instruction files that grow until nobody reads them, or a multi-agent framework that costs more tokens than the work. Canon is the middle option. There is one agent. Everything that does not need judgment, such as validating docs, hashing code, running mutation tests, linting, searching and syncing, is a script that costs no tokens when it passes. The model spends its tokens on research, design decisions and code.
 
 | Piece | What it does |
 |---|---|
 | Vault | One private git repo for specs, phases, ADRs, lessons and glossaries. A schema and a validator keep every doc the same shape. |
 | Spec first | A spec lists behaviors as testable lines. Each behavior links to the test that proves it. Specs hold no file paths or code, because those go stale. |
-| Anchors and stale check | A spec records hashes of the code it governs. When that code changes, `brain stale` says so, and `brain complete` refuses to close work on a stale spec. |
+| Anchors and stale check | A spec records hashes of the code it governs. When that code changes, `canon stale` says so, and `canon complete` refuses to close work on a stale spec. |
 | Hooks | At session start the agent gets a short brief: open work, stale specs, sync state. At the end of a turn it is stopped once if code changed and no doc did. The hooks do nothing in repos you did not map. |
 | Test-first flow | Skills for grilling, spec, tdd, mutation testing, quality checks, debugging and retro, tied together by a `flow` skill. |
 | Mutation testing | Runs the right tool for the stack on the changed files and shows only the surviving mutants. |
@@ -52,36 +66,36 @@ Needs Node 22.13 or newer. Claude Code itself does not need Node, so install it 
 
 ```bash
 # 1. Install the plugin (inside Claude Code)
-/plugin install software-factory --marketplace wawanwidiantara/software-factory
+/plugin install canon --marketplace wawanwidiantara/canon
 
 # 2. Create your vault: a private repo for your docs
-brain init ~/brain-vault
-cd ~/brain-vault && git remote add origin <your-private-repo> && git add -A && git commit -m "chore: init" && git push -u origin main
+canon init ~/canon-vault
+cd ~/canon-vault && git remote add origin <your-private-repo> && git add -A && git commit -m "chore: init" && git push -u origin main
 
 # 3. Tell this device where it is, and map a repo
-brain setup ~/brain-vault
-brain map my-app ~/code/my-app
+canon setup ~/canon-vault
+canon map my-app ~/code/my-app
 ```
 
-Add `Bash(brain:*)` to `permissions.allow` in your Claude Code settings so the agent can run the CLI without a prompt each time. Plugins cannot ship permission rules.
+Add `Bash(canon:*)` to `permissions.allow` in your Claude Code settings so the agent can run the CLI without a prompt each time. Plugins cannot ship permission rules.
 
-Run `brain doctor` at any point. It checks Node, git, the vault, your mapped repos, the permission and the optional tools, and prints the fix for each problem.
+Run `canon doctor` at any point. It checks Node, git, the vault, your mapped repos, the permission and the optional tools, and prints the fix for each problem.
 
 For a repo that already has code, run the `onboard` skill once. Then start work with the `flow` skill: research, grill, spec, phase, tdd, mutation, check, close.
 
 ## How a change flows
 
-1. **Orient.** `brain query` finds what you already decided.
+1. **Orient.** `canon query` finds what you already decided.
 2. **Grill.** The agent asks you the open questions, a few at a time, each with its recommendation. Your decisions are written into the spec and into ADRs.
 3. **Spec and phase.** Behaviors, decisions and test seams. You approve it.
-4. **Build.** One behavior at a time: failing test, passing code, `brain task ... done`.
-5. **Close.** Mutation tests, quality checks, a stale check, then `brain complete`. It refuses if a behavior is open or a spec is stale.
+4. **Build.** One behavior at a time: failing test, passing code, `canon task ... done`.
+5. **Close.** Mutation tests, quality checks, a stale check, then `canon complete`. It refuses if a behavior is open or a spec is stale.
 6. **Learn.** `retro` reads the session digests and proposes checks for what you had to correct.
 
 ## Requirements
 
 - Node 22.13 or newer, and git.
-- Linux, macOS or Windows. On Windows the `Bash` tool needs Git for Windows, or use `brain.cmd` from PowerShell or cmd.
+- Linux, macOS or Windows. On Windows the `Bash` tool needs Git for Windows, or use `canon.cmd` from PowerShell or cmd.
 - Optional: [codegraph](https://github.com/colbymchenry/codegraph), a mutation testing tool for your stack, and [Quicksilver](https://github.com/UditAkhourii/quicksilver).
 
 ## Status

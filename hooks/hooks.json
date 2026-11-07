@@ -1,5 +1,5 @@
 {
-  "description": "Software factory: inject project brain state, protect it across compaction, and keep docs in step with code.",
+  "description": "Canon: inject canon state, protect it across compaction, and keep docs in step with code.",
   "hooks": {
     "SessionStart": [
       {

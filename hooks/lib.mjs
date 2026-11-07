@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { resolveProject, resolveVault } from "../brain/src/context.mjs";
+import { resolveProject, resolveVault } from "../src/context.mjs";
 
 export function readInput() {
   try {
@@ -10,7 +10,7 @@ export function readInput() {
 }
 
 // Resolve { vault, project } or null. Null means: this repo is not under the
-// brain, so every hook stays silent and touches nothing.
+// canon, so every hook stays silent and touches nothing.
 export function target(input) {
   try {
     const vault = resolveVault();
@@ -27,7 +27,7 @@ export function guard(fn) {
   try {
     fn();
   } catch (e) {
-    process.stderr.write(`brain hook: ${e?.message ?? e}\n`);
+    process.stderr.write(`canon hook: ${e?.message ?? e}\n`);
     process.exit(0);
   }
 }

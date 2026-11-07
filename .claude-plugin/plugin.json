@@ -1,16 +1,25 @@
 {
-  "name": "software-factory",
-  "displayName": "Software Factory",
+  "name": "canon",
+  "displayName": "Canon",
   "version": "0.1.0",
-  "description": "A project brain for Claude Code: specs and decisions in one private vault, hooks that keep docs in step with code, and skills for a spec-first, test-first flow on a small budget.",
+  "description": "Canon: what your project has decided, kept true to the code. Specs and decisions in one private vault, hooks that keep docs in step with code, and a spec-first, test-first flow for Claude Code.",
   "author": {
     "name": "I Gede Widiantara",
     "email": "widiantara@clowdlab.com",
     "url": "https://github.com/wawanwidiantara"
   },
-  "homepage": "https://github.com/wawanwidiantara/software-factory",
-  "repository": "https://github.com/wawanwidiantara/software-factory",
+  "homepage": "https://github.com/wawanwidiantara/canon",
+  "repository": "https://github.com/wawanwidiantara/canon",
   "license": "MIT",
-  "keywords": ["claude-code", "specs", "tdd", "mutation-testing", "agent-memory", "workflow", "hooks"],
+  "keywords": [
+    "claude-code",
+    "specs",
+    "tdd",
+    "mutation-testing",
+    "agent-memory",
+    "workflow",
+    "hooks",
+    "canon"
+  ],
   "icon": "./.claude-plugin/icon.png"
 }

@@ -9,7 +9,7 @@ Keep the project's words precise, and write them down the moment they are settle
 
 ## Glossary
 
-The glossary is one `context` doc per project: find it with `brain query glossary --project <p>`, or create it with `brain new context <project> glossary` when the first term is settled. One line per term in its Summary section:
+The glossary is one `context` doc per project: find it with `canon query glossary --project <p>`, or create it with `canon new context <project> glossary` when the first term is settled. One line per term in its Summary section:
 
 `- **Term**: what it means in one sentence. _Avoid_: synonyms we do not use.`
 
@@ -25,4 +25,4 @@ It holds language only: no implementation details, decisions or specs.
 
 ## ADRs, sparingly
 
-Offer an ADR only when all three hold: it is hard to reverse, a future reader will wonder why, and there was a real trade-off. Otherwise a sentence in the spec's Implementation Decisions is enough. Create it with `brain new adr <project> <slug>` and list the rejected options under Consequences.
+Offer an ADR only when all three hold: it is hard to reverse, a future reader will wonder why, and there was a real trade-off. Otherwise a sentence in the spec's Implementation Decisions is enough. Create it with `canon new adr <project> <slug>` and list the rejected options under Consequences.

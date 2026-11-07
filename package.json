@@ -1,17 +1,17 @@
 {
-  "name": "software-factory",
+  "name": "canon",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "A project brain for Claude Code: the brain CLI, hooks and skills.",
+  "description": "Canon: what your project has decided, kept true to the code. A plugin and CLI for Claude Code.",
   "bin": {
-    "brain": "brain/bin/brain.mjs"
+    "canon": "bin/canon.mjs"
   },
   "engines": {
     "node": ">=22.13"
   },
   "scripts": {
-    "test": "node --test brain/test/brain.test.mjs brain/test/hooks.test.mjs brain/test/mutation.test.mjs brain/test/digest.test.mjs brain/test/index.test.mjs brain/test/check.test.mjs brain/test/integrations.test.mjs brain/test/lifecycle.test.mjs brain/test/platform.test.mjs brain/test/sync.test.mjs brain/test/robust.test.mjs brain/test/doctor.test.mjs"
+    "test": "node --test \"test/*.test.mjs\""
   },
   "license": "MIT",
   "author": {
@@ -19,13 +19,13 @@
     "email": "widiantara@clowdlab.com",
     "url": "https://github.com/wawanwidiantara"
   },
-  "homepage": "https://github.com/wawanwidiantara/software-factory",
+  "homepage": "https://github.com/wawanwidiantara/canon",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wawanwidiantara/software-factory.git"
+    "url": "git+https://github.com/wawanwidiantara/canon.git"
   },
   "bugs": {
-    "url": "https://github.com/wawanwidiantara/software-factory/issues"
+    "url": "https://github.com/wawanwidiantara/canon/issues"
   },
   "keywords": [
     "claude-code",

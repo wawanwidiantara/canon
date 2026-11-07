@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { sessionStartMs, shouldBlock, stopReasons } from "../brain/src/context.mjs";
+import { sessionStartMs, shouldBlock, stopReasons } from "../src/context.mjs";
 import { guard, readInput, target } from "./lib.mjs";
 
 guard(() => {

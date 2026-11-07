@@ -8,14 +8,14 @@ Machines do the checking; you only read what failed. This is the free replacemen
 ## Run
 
 ```
-brain check            # lists what would run for the changed files
-brain check --run      # runs it; a pass is one line, a failure is the last 25 lines
-brain check --run --fast   # skip slow tools (duplication, security, project-wide dead code)
+canon check            # lists what would run for the changed files
+canon check --run      # runs it; a pass is one line, a failure is the last 25 lines
+canon check --run --fast   # skip slow tools (duplication, security, project-wide dead code)
 ```
 
 It uses what the repo already defines first (package.json and composer.json scripts such as `lint`, `typecheck`, `analyse`). Then, if installed, it adds PHPStan/Larastan, Pint, Rector, tsc, ESLint, knip, `dart`/`flutter analyze`, `go vet`, `cargo clippy`, ruff, jscpd and OpenGrep, each scoped to the changed files. Tools marked "flags unverified" were written from memory: on error, run the tool's `--help` and adjust.
 
-If nothing is configured for this stack, say so and suggest the one or two tools that fit. Do not install anything without asking. To add a tool for any stack, add `checks.commands` to the project in the vault's `brain.config.json`:
+If nothing is configured for this stack, say so and suggest the one or two tools that fit. Do not install anything without asking. To add a tool for any stack, add `checks.commands` to the project in the vault's `canon.config.json`:
 
 ```json
 "checks": { "onStop": false, "disable": ["knip"],

@@ -1,6 +1,6 @@
 ---
 name: grilling
-description: Grill the user relentlessly about a plan, decision, or idea, one fixed procedure every time, then record the decisions in the project brain. Use before writing a spec, when stress-testing a design, or on any 'grill' trigger phrase.
+description: Grill the user relentlessly about a plan, decision, or idea, one fixed procedure every time, then record the decisions in the canon. Use before writing a spec, when stress-testing a design, or on any 'grill' trigger phrase.
 ---
 
 <!-- Adapted from mattpocock/skills `grilling` (MIT, Matt Pocock). -->
@@ -10,7 +10,7 @@ Interview the user until you share an understanding. Follow this procedure exact
 ## 1. Prepare (no questions yet)
 
 - Look up facts yourself: the spec, ADRs, the code (code graph or grep, only the files you need). Never ask the user for something you can find. There are no sub-agents; one agent, small budget.
-- In a mapped project, open the grill log: `brain new discovery <project> grill-<topic>`. Its Findings section is the decision ledger, so decisions survive compaction and new sessions. If a grill log for this topic exists, read it and continue from it.
+- In a mapped project, open the grill log: `canon new discovery <project> grill-<topic>`. Its Findings section is the decision ledger, so decisions survive compaction and new sessions. If a grill log for this topic exists, read it and continue from it.
 - Print the design tree once: a short indented list of the decisions to settle, grouped by dependency. Mark nothing as decided yet.
 
 ## 2. Ask in rounds
@@ -49,7 +49,7 @@ Done when the frontier is empty and nothing is silently assumed. Print the full 
 After confirmation:
 
 1. Small or reversible decisions go in the spec's Implementation Decisions or Testing Decisions, in prose, with no file paths or code.
-2. Costly or hard-to-reverse decisions, and any that rejected a serious alternative, get an ADR: `brain new adr <project> <slug>`. Rejected options and the reason go under Consequences.
-3. No spec yet: `brain new spec <project> <slug>`; it stays `draft` until the user approves it (`brain approve <id>`).
-4. Close the grill log: `brain approve <grill-log-id>`, then `brain complete <grill-log-id>`. New ADRs stay `draft` until the user approves them with `brain approve`.
-5. Run `brain validate` and report what was written.
+2. Costly or hard-to-reverse decisions, and any that rejected a serious alternative, get an ADR: `canon new adr <project> <slug>`. Rejected options and the reason go under Consequences.
+3. No spec yet: `canon new spec <project> <slug>`; it stays `draft` until the user approves it (`canon approve <id>`).
+4. Close the grill log: `canon approve <grill-log-id>`, then `canon complete <grill-log-id>`. New ADRs stay `draft` until the user approves them with `canon approve`.
+5. Run `canon validate` and report what was written.

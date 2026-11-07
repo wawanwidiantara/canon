@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { markSession, resolveVault, sessionBrief } from "../brain/src/context.mjs";
-import { pullIfDue, syncSettings } from "../brain/src/sync.mjs";
+import { markSession, resolveVault, sessionBrief } from "../src/context.mjs";
+import { pullIfDue, syncSettings } from "../src/sync.mjs";
 import { guard, readInput, target } from "./lib.mjs";
 
 guard(() => {

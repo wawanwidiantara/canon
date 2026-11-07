@@ -11,10 +11,10 @@ CI runs the tests on Linux, macOS and Windows with Node 22 and 24. A change that
 
 ## How the code is organized
 
-- `brain/src/` holds the logic, one concern per file. `brain/bin/brain.mjs` only parses arguments.
-- `hooks/` holds thin wrappers around functions in `brain/src/context.mjs`. Hooks must never break a session, so each one runs inside `guard()`.
+- `src/` holds the logic, one concern per file. `bin/canon.mjs` only parses arguments.
+- `hooks/` holds thin wrappers around functions in `src/context.mjs`. Hooks must never break a session, so each one runs inside `guard()`.
 - `skills/` holds the skills the plugin loads. A skill adapted from someone else's work keeps an "adapted from" comment and the original credit in the README.
-- `brain/src/schema.mjs` is the source of truth for doc types and sections. [docs/schema.md](docs/schema.md) explains it.
+- `src/schema.mjs` is the source of truth for doc types and sections. [docs/schema.md](docs/schema.md) explains it.
 
 ## Rules
 

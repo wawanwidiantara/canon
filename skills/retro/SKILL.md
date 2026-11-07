@@ -10,7 +10,7 @@ You are improving the agent's **environment** (checks, docs, skills, hooks), not
 
 ## Get the evidence
 
-Run `brain retro`. It reports every session digest since the last retro: tokens, your corrections, tool errors, files re-read, and oversized tool results. Do not read raw transcripts (`~/.claude/projects/*.jsonl`): they are huge and cost many tokens. Open one only to understand a single flagged item.
+Run `canon retro`. It reports every session digest since the last retro: tokens, your corrections, tool errors, files re-read, and oversized tool results. Do not read raw transcripts (`~/.claude/projects/*.jsonl`): they are huge and cost many tokens. Open one only to understand a single flagged item.
 
 If there are no digests, say so and stop. Digests are written by the session-end hook for repos mapped in the vault.
 
@@ -32,12 +32,12 @@ A correction by the user is the strongest signal: it is a mistake that got past 
 
 1. **Structure.** Make the mistake impossible by design.
 2. **A deterministic check.** Type, lint rule whose message names the fix, test, or hook. Mechanical mistakes always get this, never a written rule.
-3. **A `lesson` doc** for judgement calls: `brain new lesson <project> <slug>`. Fill Mistake, Evidence (session id), Prevention. Set `enforced: true` once a check exists.
+3. **A `lesson` doc** for judgement calls: `canon new lesson <project> <slug>`. Fill Mistake, Evidence (session id), Prevention. Set `enforced: true` once a check exists.
 4. **A skill edit** when a skill caused or allowed it.
 5. **A short note in docs** only as the last resort.
 
 ## Present, then act
 
-Show the candidates in order of severity, each with: evidence, proposed fix, where it goes, and its token cost or saving if known. Apply nothing until the user approves each item. After applying, run `brain validate`, then `brain retro --done`.
+Show the candidates in order of severity, each with: evidence, proposed fix, where it goes, and its token cost or saving if known. Apply nothing until the user approves each item. After applying, run `canon validate`, then `canon retro --done`.
 
 Keep the list short. Three fixes that land beat ten that do not.

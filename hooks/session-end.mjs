@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import fs from "node:fs";
-import { buildDigest, saveDigest } from "../brain/src/digest.mjs";
+import { buildDigest, saveDigest } from "../src/digest.mjs";
 import { guard, readInput, target } from "./lib.mjs";
 
 guard(() => {

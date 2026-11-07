@@ -7,9 +7,9 @@
   },
   "plugins": [
     {
-      "name": "software-factory",
+      "name": "canon",
       "source": "./",
-      "description": "A project brain for Claude Code: specs and decisions in one private vault, hooks that keep docs in step with code, and skills for a spec-first, test-first flow on a small budget."
+      "description": "Canon: what your project has decided, kept true to the code. Specs and decisions in one private vault, hooks that keep docs in step with code, and a spec-first, test-first flow for Claude Code."
     }
   ]
 }

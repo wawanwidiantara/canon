@@ -39,6 +39,6 @@ For every change: first make it work, then make it right, then follow practice.
 ## Practice
 
 - Keep a short log of each action and why; report it when done.
-- Keep the main thread small: send bulk reading to tools such as `brain query` and the code graph, and keep only the summary.
+- Keep the main thread small: send bulk reading to tools such as `canon query` and the code graph, and keep only the summary.
 - Clean up what you created: temp files, debug lines, throwaway scripts. Uncommitted work waits for the user's decision.
 - Commit in small ordered steps when the user asks you to commit, each message saying why, what and how it was proven. Never push unless the user asks.

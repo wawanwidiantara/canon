@@ -31,7 +31,7 @@ One probe per prediction, one variable at a time. Prefer a debugger or REPL to l
 
 ## 5. Fix and lock it in
 
-Use the `tdd` skill: turn the shrunk repro into a failing test at a seam that really exercises the bug, watch it fail, fix, watch it pass, then rerun the original loop. If the only available seam is too shallow to catch the bug, say so: the architecture is blocking a regression test, and that is a finding for the user. If the behavior was missing from the spec, add it (`brain query` finds the spec).
+Use the `tdd` skill: turn the shrunk repro into a failing test at a seam that really exercises the bug, watch it fail, fix, watch it pass, then rerun the original loop. If the only available seam is too shallow to catch the bug, say so: the architecture is blocking a regression test, and that is a finding for the user. If the behavior was missing from the spec, add it (`canon query` finds the spec).
 
 ## 6. Clean up
 
