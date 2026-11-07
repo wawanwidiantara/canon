@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.11
 
 - Opt-in subagent `canon:spec-reviewer`: a cold read of a newly written draft spec before it is approved. It reads only the spec and its `depends_on` docs, returns one line per finding and a verdict, and stays off until `agents.spec-reviewer` is true. The `flow` skill offers it at the spec step.
 
