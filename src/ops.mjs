@@ -4,7 +4,7 @@ import path from "node:path";
 import { stringify } from "./frontmatter.mjs";
 import { writeAtomic, withLock } from "./fsx.mjs";
 import { canonical, isReservedName } from "./platform.mjs";
-import { ANCHORED, SLUG_RE, TYPES } from "./schema.mjs";
+import { ANCHORED, COMPLETABLE, SLUG_RE, TYPES } from "./schema.mjs";
 import { getSection, isBlank, parseBehaviors, stripComments, updateBehavior } from "./markdown.mjs";
 import { AGENTS } from "./gate.mjs";
 import { validate } from "./validate.mjs";
@@ -278,7 +278,7 @@ export function complete(vault, id) {
 
 function completeLocked(vault, id) {
   const doc = mustDoc(vault, id);
-  if (!["active", "needs-review"].includes(doc.data.status)) throw new Error(`${id} is ${doc.data.status}; only active docs can be completed`);
+  if (!COMPLETABLE.includes(doc.data.status)) throw new Error(`${id} is ${doc.data.status}; only active docs can be completed`);
   const problems = completionProblems(vault, id);
   if (problems.length) throw new Error(`cannot complete ${id}:\n${problems.map((p) => `- ${p}`).join("\n")}`);
   write(doc, { ...doc.data, status: "completed" }, doc.body);

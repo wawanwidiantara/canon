@@ -13,6 +13,7 @@ import path from "node:path";
 import { mainRepoFor } from "./anchors.mjs";
 import { writeAtomic } from "./fsx.mjs";
 import { parseBehaviors } from "./markdown.mjs";
+import { DELIVERED } from "./schema.mjs";
 import { canonical, isWithin, toPosix } from "./platform.mjs";
 import { findDoc, listDocs, loadConfig, lockVault } from "./vault.mjs";
 
@@ -113,7 +114,7 @@ export function blockers(vault, doc, claims = loadClaims(vault)) {
   for (const dep of doc.data.depends_on ?? []) {
     const depId = String(dep).replace(/^\[\[|\]\]$/g, "");
     const d = findDoc(vault, depId);
-    const ok = d?.data && (d.data.type === "phase" ? d.data.status === "completed" : ["active", "completed"].includes(d.data.status));
+    const ok = d?.data && (d.data.type === "phase" ? d.data.status === "completed" : DELIVERED.includes(d.data.status));
     if (!ok) out.push(`waits for ${depId}${d?.data ? ` (${d.data.status})` : " (not found)"}`);
   }
   if (Array.isArray(doc.data.owns)) {
@@ -171,7 +172,7 @@ export function readiness(vault, project) {
   const blocked = [];
   for (const d of listDocs(vault)) {
     if (d.data?.type !== "phase" || (project && d.data.project !== project)) continue;
-    if (!["active"].includes(d.data.status) || claims[d.data.id]) continue;
+    if (d.data.status !== "active" || claims[d.data.id]) continue;
     const why = blockers(vault, d, claims);
     (why.length ? blocked : ready).push({ id: d.data.id, why });
   }

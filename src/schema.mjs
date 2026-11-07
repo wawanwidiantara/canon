@@ -2,6 +2,12 @@ export const SCHEMA_VERSION = 1;
 
 export const STATUS = ["draft", "active", "needs-review", "superseded", "completed"];
 
+// Groups of statuses that the rules test for. Named here so no rule writes its own list.
+export const UNFINISHED = ["draft", "active", "needs-review"]; // work still open
+export const COMPLETABLE = ["active", "needs-review"]; // `canon complete` accepts these
+export const DELIVERED = ["active", "completed"]; // built and ratified
+export const NOT_YET_CANON = ["draft", "superseded"]; // sections may still be empty
+
 // sections: [heading, one-line purpose]. The purpose becomes the scaffold hint
 // so the model fills each section the same way every time.
 export const TYPES = {
