@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Software Factory">
+  <rect width="512" height="512" rx="112" fill="#1B1F24"/>
+  <!-- three stacked documents: the vault -->
+  <rect x="96" y="112" width="320" height="76" rx="22" fill="#A3A8B0"/>
+  <rect x="96" y="218" width="320" height="76" rx="22" fill="#5B6068"/>
+  <rect x="96" y="324" width="320" height="76" rx="22" fill="#A3A8B0"/>
+  <!-- one line of text per document -->
+  <rect x="128" y="142" width="132" height="16" rx="8" fill="#1B1F24"/>
+  <rect x="128" y="248" width="176" height="16" rx="8" fill="#1B1F24"/>
+  <rect x="128" y="354" width="104" height="16" rx="8" fill="#1B1F24"/>
+  <!-- plumb line: the check that docs still match the code -->
+  <rect x="368" y="86" width="12" height="262" rx="6" fill="#4C8DF6"/>
+  <circle cx="374" cy="372" r="30" fill="#4C8DF6"/>
+</svg>

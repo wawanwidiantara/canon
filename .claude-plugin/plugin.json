@@ -1,6 +1,16 @@
 {
   "name": "software-factory",
+  "displayName": "Software Factory",
   "version": "0.1.0",
-  "description": "Personal agentic software factory: central docs brain, hooks, curated skills.",
-  "author": { "name": "madebyclowd" }
+  "description": "A project brain for Claude Code: specs and decisions in one private vault, hooks that keep docs in step with code, and skills for a spec-first, test-first flow on a small budget.",
+  "author": {
+    "name": "I Gede Widiantara",
+    "email": "widiantara@clowdlab.com",
+    "url": "https://github.com/wawanwidiantara"
+  },
+  "homepage": "https://github.com/wawanwidiantara/software-factory",
+  "repository": "https://github.com/wawanwidiantara/software-factory",
+  "license": "MIT",
+  "keywords": ["claude-code", "specs", "tdd", "mutation-testing", "agent-memory", "workflow", "hooks"],
+  "icon": "./.claude-plugin/icon.png"
 }

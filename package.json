@@ -3,10 +3,36 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Personal agentic software factory: brain CLI, skills, hooks.",
-  "bin": { "brain": "brain/bin/brain.mjs" },
-  "engines": { "node": ">=22.13" },
+  "description": "A project brain for Claude Code: the brain CLI, hooks and skills.",
+  "bin": {
+    "brain": "brain/bin/brain.mjs"
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
   "scripts": {
     "test": "node --test brain/test/brain.test.mjs brain/test/hooks.test.mjs brain/test/mutation.test.mjs brain/test/digest.test.mjs brain/test/index.test.mjs brain/test/check.test.mjs brain/test/integrations.test.mjs brain/test/lifecycle.test.mjs brain/test/platform.test.mjs brain/test/sync.test.mjs brain/test/robust.test.mjs brain/test/doctor.test.mjs"
-  }
+  },
+  "license": "MIT",
+  "author": {
+    "name": "I Gede Widiantara",
+    "email": "widiantara@clowdlab.com",
+    "url": "https://github.com/wawanwidiantara"
+  },
+  "homepage": "https://github.com/wawanwidiantara/software-factory",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wawanwidiantara/software-factory.git"
+  },
+  "bugs": {
+    "url": "https://github.com/wawanwidiantara/software-factory/issues"
+  },
+  "keywords": [
+    "claude-code",
+    "specs",
+    "tdd",
+    "mutation-testing",
+    "agent-memory",
+    "hooks"
+  ]
 }

@@ -1,0 +1,15 @@
+{
+  "name": "clowd",
+  "description": "Claude Code plugins by Clowd.",
+  "owner": {
+    "name": "I Gede Widiantara",
+    "email": "widiantara@clowdlab.com"
+  },
+  "plugins": [
+    {
+      "name": "software-factory",
+      "source": "./",
+      "description": "A project brain for Claude Code: specs and decisions in one private vault, hooks that keep docs in step with code, and skills for a spec-first, test-first flow on a small budget."
+    }
+  ]
+}
