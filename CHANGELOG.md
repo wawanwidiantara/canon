@@ -3,6 +3,7 @@
 ## 0.1.9 (unreleased)
 
 - `canon stale --mark` refuses to run inside a worktree, where it would flip shared doc status for a branch.
+- `ratify` can be set per doc type, so lessons and discoveries can skip the confirmation while specs, ADRs and `supersede` still ask. Mixed commands, unknown docs and typos still ask.
 - README and integrations docs describe the gate and parallel work.
 
 ## 0.1.8

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { agentDenial, quicksilverDenial, ratificationPrompt } from "../src/gate.mjs";
 import { resolveVault } from "../src/context.mjs";
-import { loadConfig } from "../src/vault.mjs";
+import { findDoc, loadConfig } from "../src/vault.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import { ownershipDenial } from "../src/packets.mjs";
@@ -37,7 +37,7 @@ guard(() => {
     process.stdout.write(JSON.stringify({ hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: reason } }));
     return;
   }
-  const ask = ratificationPrompt(config, t.project, command);
+  const ask = ratificationPrompt(config, t.project, command, (id) => findDoc(t.vault, id)?.data?.type ?? null);
   if (ask) {
     process.stdout.write(JSON.stringify({ hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: "ask", permissionDecisionReason: ask } }));
   }

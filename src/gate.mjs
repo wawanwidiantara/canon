@@ -19,13 +19,39 @@ const RATIFY_RE = /(^|[\s;&|(/])canon\s+(approve|supersede)\b/;
 
 export const isRatification = (command) => RATIFY_RE.test(String(command ?? ""));
 
-export function ratificationPrompt(config, project, command) {
+// "ratify" in canon.config.json:
+//   "ask" (default)  every approve and supersede asks
+//   "auto"           none ask
+//   { "types": { "lesson": "auto", "discovery": "auto" }, "supersede": "ask", "default": "ask" }
+//                    approve asks unless its doc type is listed as "auto";
+//                    supersede follows "supersede", else "default"
+// Anything unrecognized asks, so a typo can never turn the gate off.
+export function ratifyMode(config, verb, docType) {
+  const r = config.ratify;
+  if (r === "auto") return "auto";
+  if (r && typeof r === "object") {
+    const v = verb === "approve" ? (r.types?.[docType] ?? r.default) : (r.supersede ?? r.default);
+    return v === "auto" ? "auto" : "ask";
+  }
+  return "ask";
+}
+
+// Every ratification in the command is checked, so `canon approve lesson && canon approve spec`
+// still asks. `typeOf(id)` gives a doc's type; an id it cannot resolve (or a shell variable) asks.
+export function ratificationPrompt(config, project, command, typeOf = () => null) {
   if (!project || !isRatification(command)) return null;
-  if (config.ratify === "auto") return null;
-  const verb = RATIFY_RE.exec(command)[2];
-  return verb === "approve"
-    ? "Approving makes this doc canon: later work will treat it as decided. Confirm only if you have read it."
-    : "Superseding retires a canon doc in favour of another. Confirm only if you agree with the replacement.";
+  const each = /(?:^|[\s;&|(/])canon\s+(approve|supersede)(?:\s+([\w.-]+))?/g;
+  const text = String(command);
+  let m;
+  while ((m = each.exec(text))) {
+    const [, verb, id] = m;
+    const type = id ? typeOf(id) : null;
+    if (ratifyMode(config, verb, type) === "auto") continue;
+    return verb === "approve"
+      ? "Approving makes this doc canon: later work will treat it as decided. Confirm only if you have read it."
+      : "Superseding retires a canon doc in favour of another. Confirm only if you agree with the replacement.";
+  }
+  return null;
 }
 
 // Opt-in subagents. They cost extra tokens, so the plugin's agents are blocked

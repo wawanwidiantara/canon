@@ -7,7 +7,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { apply, inspect, plan, wiring } from "../src/codegraph.mjs";
 import { agentDenial, isQuicksilverCall, isRatification, quicksilverDenial, ratificationPrompt } from "../src/gate.mjs";
-import { init, mapProject } from "../src/ops.mjs";
+import { init, mapProject, newDoc } from "../src/ops.mjs";
 import { sessionBrief } from "../src/context.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -147,6 +147,25 @@ test("ratification gate: approve and supersede ask a person, everything else pas
   assert.equal(ratificationPrompt(cfg, null, "canon approve x"), null);
 });
 
+test("ratify can be set per doc type; a mixed command and a typo still ask", () => {
+  const types = { lesson: "auto", discovery: "auto", spec: "ask" };
+  const typeOf = (id) => ({ "l-1": "lesson", "d-1": "discovery", "s-1": "spec", "a-1": "adr" })[id] ?? null;
+  const cfg = { ratify: { types, supersede: "ask" } };
+  const ask = (c, conf = cfg) => ratificationPrompt(conf, "demo", c, typeOf);
+  assert.equal(ask("canon approve l-1"), null);
+  assert.equal(ask("canon approve d-1"), null);
+  assert.match(ask("canon approve s-1"), /Approving/);
+  assert.match(ask("canon approve a-1"), /Approving/); // unlisted type follows default, which asks
+  assert.match(ask("canon approve l-1 && canon approve s-1"), /Approving/);
+  assert.match(ask("canon approve $ID"), /Approving/);
+  assert.match(ask("canon approve"), /Approving/);
+  assert.match(ask("canon supersede l-1 d-1"), /Superseding/);
+  assert.equal(ask("canon supersede l-1 d-1", { ratify: { supersede: "auto" } }), null);
+  assert.match(ask("canon approve l-1", { ratify: { types: { lesson: "yes" } } }), /Approving/); // a typo never opens the gate
+  assert.match(ask("canon approve l-1", { ratify: "ask" }), /Approving/);
+  assert.equal(ask("canon approve a-1", { ratify: { default: "auto" } }), null);
+});
+
 test("pre-tool-use hook asks for approve, denies qs first, and honours ratify=auto", () => {
   const root = tmp();
   const vault = path.join(root, "vault");
@@ -165,6 +184,26 @@ test("pre-tool-use hook asks for approve, denies qs first, and honours ratify=au
   cfg.ratify = "auto";
   fs.writeFileSync(cfgPath, JSON.stringify(cfg));
   assert.equal(run("canon approve demo-spec-001-x").stdout, "");
+});
+
+test("pre-tool-use hook looks up the doc type: a lesson passes, a spec still asks", () => {
+  const root = tmp();
+  const vault = path.join(root, "vault");
+  const r = path.join(root, "repo");
+  fs.mkdirSync(r);
+  init(vault);
+  mapProject(vault, "demo", r);
+  const lesson = newDoc(vault, { type: "lesson", project: "demo", slug: "l" });
+  const spec = newDoc(vault, { type: "spec", project: "demo", slug: "s" });
+  const cfgPath = path.join(vault, "canon.config.json");
+  const cfg = JSON.parse(fs.readFileSync(cfgPath, "utf8"));
+  cfg.ratify = { types: { lesson: "auto" } };
+  fs.writeFileSync(cfgPath, JSON.stringify(cfg));
+  const run = (command) =>
+    spawnSync("node", [path.join(ROOT, "hooks/pre-tool-use.mjs")], { input: JSON.stringify({ cwd: r, tool_name: "Bash", tool_input: { command } }), env: { ...process.env, CANON_VAULT: vault }, encoding: "utf8" });
+  assert.equal(run(`canon approve ${lesson.id}`).stdout, "");
+  assert.equal(JSON.parse(run(`canon approve ${spec.id}`).stdout).hookSpecificOutput.permissionDecision, "ask");
+  assert.equal(JSON.parse(run(`canon approve ${lesson.id} && canon approve ${spec.id}`).stdout).hookSpecificOutput.permissionDecision, "ask");
 });
 
 test("agent gate: plugin agents are blocked unless enabled, other agents pass", () => {

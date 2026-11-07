@@ -12,7 +12,7 @@ Canon keeps that record, keeps it true, and makes sure only what you accepted is
 
 **3. Canon changes by amendment, not erasure.** A replaced decision is not deleted. `canon supersede` marks it, links its replacement and hides it from search while keeping it for history. There is no archive folder to forget about.
 
-**4. A person ratifies it.** The agent asks questions, drafts specs and fills sections. A doc becomes canon only through `canon approve`, and that command asks you to confirm every time. A grilling session ends with you confirming the decisions. The gate is a hook, not a promise in a prompt. You can turn it off with `"ratify": "auto"` in `canon.config.json`, and then you own the consequences.
+**4. A person ratifies it.** The agent asks questions, drafts specs and fills sections. A doc becomes canon only through `canon approve`, and that command asks you to confirm every time. A grilling session ends with you confirming the decisions. The gate is a hook, not a promise in a prompt. You can loosen it in `canon.config.json`: `"ratify": "auto"` turns it off, and `"ratify": { "types": { "lesson": "auto", "discovery": "auto" }, "supersede": "ask", "default": "ask" }` skips the prompt only for the doc types you list. Every ratification in a command is checked, an unknown doc or a typo still asks, and you own the consequences of what you open.
 
 **5. A rule nothing enforces is not canon.** "Always write a test first" is a wish until something fails when you do not. A lesson from a retro is recorded with the check that now prevents the mistake, and `canon enforce` marks it only once that check exists. Prefer enforcement in this order: structure, types, a lint, a test, and a written rule last.
 

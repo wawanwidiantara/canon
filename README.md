@@ -28,7 +28,7 @@ A canon is the body of work a community accepts as authoritative. For a project 
 1. **One authority.** The vault is the canon. Research and brainstorming are input, never authority.
 2. **Canon is checked against reality.** A spec records hashes of the code it governs. When that code changes, the spec stops being canon until someone re-confirms it.
 3. **Canon changes by amendment, not erasure.** Docs are superseded and kept. Nothing is deleted or archived.
-4. **A person ratifies it.** The agent drafts. `canon approve` and `canon supersede` ask you to confirm, every time, even if the CLI is otherwise allowed.
+4. **A person ratifies it.** The agent drafts. `canon approve` and `canon supersede` ask you to confirm, every time, even if the CLI is otherwise allowed. You can skip the prompt for low-risk doc types such as lessons and discoveries (`ratify` in `canon.config.json`).
 5. **A rule nothing enforces is not canon.** A lesson counts once a lint, test or hook backs it.
 6. **Keep it small.** Agents read the active, relevant part, one section at a time.
 7. **Scripts check, people judge.** Hashing, validating and searching cost no tokens. Tokens go to decisions.
