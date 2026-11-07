@@ -7,7 +7,7 @@ import { canonical, isReservedName } from "./platform.mjs";
 import { ANCHORED, SLUG_RE, TYPES } from "./schema.mjs";
 import { getSection, isBlank, parseBehaviors, stripComments, updateBehavior } from "./markdown.mjs";
 import { validate } from "./validate.mjs";
-import { anchorFor, checkAnchors, describeProblems, repoFor } from "./anchors.mjs";
+import { anchorFor, checkAnchors, describeProblems, inWorktree, repoFor } from "./anchors.mjs";
 import { findDoc, listDocs, loadConfig, lockVault, saveConfig } from "./vault.mjs";
 import { gitCommonDir, normalizeRemote, originOf } from "./remote.mjs";
 
@@ -204,7 +204,7 @@ export function markStale(vault) {
   const config = loadConfig(vault);
   for (const s of stale) {
     const project = findDoc(vault, s.id)?.data?.project;
-    if (project && repoFor(config, project) !== repoFor(config, project, "/")) {
+    if (project && inWorktree(config, project)) {
       throw new Error("refusing to mark docs stale from inside a worktree: the result describes this branch, not the project. Run `canon stale --mark` in the main checkout (after the branch lands).");
     }
   }

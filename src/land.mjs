@@ -3,7 +3,7 @@
 // the work lands only if the owned-path check, the repo's full gate and the
 // phase's completion check all pass, and it merges onto the main it was tested on.
 import { execFileSync } from "node:child_process";
-import { describeProblems, repoFor } from "./anchors.mjs";
+import { describeProblems, mainRepoFor } from "./anchors.mjs";
 import { formatGate, loadGate, runGate, runRegen } from "./gates.mjs";
 import { completionProblems, complete, findStale, verifySpec } from "./ops.mjs";
 import { loadClaims, owned, release } from "./packets.mjs";
@@ -35,7 +35,7 @@ function landLocked(vault, phaseId, merge) {
   const step = (s) => log.push(s);
   const wt = c.worktree;
   if (isWithin(wt, canonical(process.cwd()))) throw new Error(`run \`canon land\` from the main checkout, not from inside ${wt}`);
-  const main = canonical(repoFor(loadConfig(vault), c.project, "/"));
+  const main = canonical(mainRepoFor(loadConfig(vault), c.project));
 
   if (git(wt, ["status", "--porcelain"]).out) throw new Error(`the worktree ${wt} has uncommitted changes; commit them first`);
   if (git(main, ["status", "--porcelain"]).out) throw new Error(`the main checkout ${main} has uncommitted changes; land onto a clean main`);
