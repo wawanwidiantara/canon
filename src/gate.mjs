@@ -4,13 +4,20 @@
 // Only the subcommands that send file content are blocked; setup, status and help are not.
 const QS_RE = /(^|[\s;&|("'/])qs(\.mjs)?["']?\s+(filter|classify|rank|find|ask)\b/;
 
-export const isQuicksilverCall = (command) => QS_RE.test(String(command ?? ""));
+// `canon qs ...` is the sanctioned wrapper, which checks the project, host and inputs itself.
+// Take it out before testing, so `canon qs filter x && qs filter y` still finds the second call.
+const WRAPPER_RE = /(^|[\s;&|(])canon\s+qs\b/g;
 
-// Returns a denial reason, or null if the call may proceed.
+export const isQuicksilverCall = (command) => QS_RE.test(String(command ?? "").replace(WRAPPER_RE, "$1"));
+
+// Returns a denial reason, or null if the call may proceed. In a mapped project every direct
+// call is refused, allowed or not, so the checks in `canon qs` cannot be skipped.
 export function quicksilverDenial(config, project, command) {
   if (!project || !isQuicksilverCall(command)) return null;
-  if (config.projects?.[project]?.quicksilver === true) return null;
-  return `Blocked: \`qs\` sends file content to a third-party API (TypeSafe/Jev) and project "${project}" has not allowed it. Use grep, \`canon query\` or the static checks instead. To allow it, set projects.${project}.quicksilver = true in the vault's canon.config.json.`;
+  if (config.projects?.[project]?.quicksilver === true) {
+    return `Blocked: run Quicksilver as \`canon qs <command> ...\` in project "${project}". It checks the project setting, the API host and the input paths before anything is sent.`;
+  }
+  return `Blocked: Quicksilver sends file content to a third-party API and project "${project}" has not allowed it. Use grep, \`canon query\` or the static checks instead. To allow it, set projects.${project}.quicksilver = true in the vault's canon.config.json, then use \`canon qs\`.`;
 }
 
 // Ratification: a doc becomes canon, or stops being canon, only when a person

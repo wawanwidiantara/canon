@@ -15,7 +15,7 @@ Work on the area the user named. If none was named, ask for one. Do not audit th
 
 - `canon query --governs <path>` and `canon query <area>` for the specs and ADRs that already cover this area. A decision recorded there is not a problem.
 - Use the code graph (`codegraph_explore`) and `git log --stat` to see what imports what and what changes together. Frequent co-change in git is evidence of a hidden link.
-- Read only the files you need.
+- Read only the files you need. If the session brief says Quicksilver is allowed in this project and the input is large (more than about 50 files or 2,000 log lines), triage it with `canon qs` instead of reading it all: `canon qs filter "Does this file handle <area>?" <dir>`. Read the files it keeps.
 
 ## 2. List every problem
 

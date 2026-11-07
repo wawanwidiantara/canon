@@ -13,7 +13,7 @@ A bug is found by a fast pass/fail signal, not by reading code. Do the phases in
 
 Get one command that goes red on *this* bug. Try, roughly in order: a failing test at the seam that reaches the bug, an HTTP or CLI call with a fixture, a headless browser script, a replay of a captured request or log, a throwaway harness around one function, a fuzz loop for "sometimes wrong", `git bisect run` for "it used to work", an old-versus-new diff.
 
-Done when the command (a) is one you already ran and showed, (b) asserts the user's exact symptom, (c) gives the same verdict each run, (d) takes seconds, (e) runs without a human. For flaky bugs, raise the reproduction rate until it is debuggable.
+Done when the command (a) is one you already ran and showed, (b) asserts the user's exact symptom, (c) gives the same verdict each run, (d) takes seconds, (e) runs without a human. For flaky bugs, raise the reproduction rate until it is debuggable. If the session brief says Quicksilver is allowed in this project and the input is large (more than about 50 files or 2,000 log lines), triage it with `canon qs` instead of reading it all: `canon qs filter "Does this line indicate a failure?" app.log --lines`. Scrub secrets and personal data from the log first.
 
 If you start building theories from reading code before this exists, stop. If you truly cannot build a loop, say what you tried and ask the user for access, a redacted artifact (log, HAR, dump) or permission to add temporary instrumentation. Do not guess.
 

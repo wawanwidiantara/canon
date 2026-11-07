@@ -36,6 +36,7 @@ const USAGE = `canon <command>
   query --active <project> [--type T]      one line per active doc
   show <id> [--section S]                  print a doc or a single section
   check [--run] [--fast] [--base B]        quality checks on changed files (lint, types, dead code, duplication, security); --run executes, capped output
+  qs <command> ...                         run Quicksilver through Canon's checks (project setting, API host, input paths); the only way agents may run it in a mapped project
   gate init | fast | full                  the repo's own gate (canon.gate.json): init writes it from existing scripts; fast/full run it, stop at the first failure
   claim <phase-id> [--agent A] [--no-worktree]   take an approved phase: checks dependencies and owned paths, creates its git worktree
   release <phase-id> [--remove-worktree]   give a phase back
@@ -214,6 +215,20 @@ async function main(argv) {
       if (!bad.length) return console.log("all changes are inside the owned paths");
       console.log(`changed outside the owned paths:\n${bad.map((b) => `- ${b}`).join("\n")}`);
       process.exit(1);
+    }
+    case "qs": {
+      const { runQs } = await import("../src/qs.mjs");
+      let vault = null;
+      try {
+        vault = findVault();
+      } catch {
+        // no vault: argument checks still apply
+      }
+      const cwd = process.cwd();
+      const project = vault ? resolveProject(vault, cwd) : null;
+      const config = vault ? loadConfig(vault) : {};
+      const root = (project && repoFor(config, project)) || cwd;
+      process.exit(runQs({ config, project, args: process.argv.slice(3), cwd, root }));
     }
     case "gate": {
       const g = await import("../src/gates.mjs");

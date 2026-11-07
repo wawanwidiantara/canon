@@ -100,7 +100,10 @@ test("quicksilver gate", () => {
   for (const c of ["ls", "grep qs file", "npm run qstatus", "qs status", "echo qs", 'node "/home/u/.claude/skills/quicksilver/scripts/qs.mjs" status', "node ~/.claude/skills/quicksilver/scripts/qs.mjs setup", "cat qs.mjs", "node other.mjs find x"]) assert.equal(isQuicksilverCall(c), false, c);
   const cfg = { projects: { a: {}, b: { quicksilver: true } } };
   assert.match(quicksilverDenial(cfg, "a", "qs filter x src"), /has not allowed it/);
-  assert.equal(quicksilverDenial(cfg, "b", "qs filter x src"), null);
+  assert.match(quicksilverDenial(cfg, "b", "qs filter x src"), /run Quicksilver as `canon qs/); // allowed projects go through the wrapper
+  assert.equal(quicksilverDenial(cfg, "b", "canon qs filter x src"), null);
+  assert.match(quicksilverDenial(cfg, "b", "canon qs filter x src && qs rank q ."), /canon qs/); // a second, direct call is still caught
+  assert.equal(quicksilverDenial(cfg, "a", "canon qs filter x src"), null); // the wrapper itself refuses a project that has not allowed it
   assert.equal(quicksilverDenial(cfg, null, "qs filter x src"), null);
   assert.equal(quicksilverDenial(cfg, "a", "ls"), null);
 });
@@ -122,8 +125,10 @@ test("pre-tool-use hook denies qs in a mapped repo, allows elsewhere and when en
   const cfg = JSON.parse(fs.readFileSync(cfgPath, "utf8"));
   cfg.projects.demo.quicksilver = true;
   fs.writeFileSync(cfgPath, JSON.stringify(cfg));
-  assert.equal(run(r, "qs filter 'x' src").stdout, "");
-  assert.match(sessionBrief(vault, "demo"), /Quicksilver .* is allowed/);
+  assert.match(JSON.parse(run(r, "qs filter 'x' src").stdout).hookSpecificOutput.permissionDecisionReason, /canon qs/);
+  assert.match(JSON.parse(run(r, 'node "/h/.claude/skills/quicksilver/scripts/qs.mjs" find x f').stdout).hookSpecificOutput.permissionDecisionReason, /canon qs/);
+  assert.equal(run(r, "canon qs filter 'x' src").stdout, "");
+  assert.match(sessionBrief(vault, "demo"), /Quicksilver is allowed[\s\S]*canon qs/);
 });
 
 test("session brief mentions codegraph only when index and wiring both exist", () => {

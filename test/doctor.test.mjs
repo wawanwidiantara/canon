@@ -87,3 +87,29 @@ test("usage report groups by ISO week and ranks sessions", () => {
   assert.match(rep, /Most used tools: Bash 6, Read 3/);
   assert.match(usageReport([]), /No session digests yet/);
 });
+
+test("doctor reports Quicksilver: not installed, no key, base URL set, and ready", () => {
+  const home = tmp();
+  const vault = tmp();
+  init(vault);
+  const saved = process.env.CANON_VAULT;
+  process.env.CANON_VAULT = vault;
+  try {
+    const qs = (env) => doctor({ cwd: tmp(), home, env: { PATH: process.env.PATH, ...env } }).find((x) => x.name === "quicksilver");
+    assert.match(qs({}).detail, /not installed/);
+    fs.mkdirSync(path.join(home, ".claude", "skills", "quicksilver", "scripts"), { recursive: true });
+    fs.writeFileSync(path.join(home, ".claude", "skills", "quicksilver", "scripts", "qs.mjs"), "");
+    assert.match(qs({}).detail, /no API key/);
+    fs.mkdirSync(path.join(home, ".quicksilver"));
+    fs.writeFileSync(path.join(home, ".quicksilver", "config.json"), "{}");
+    const ready = qs({});
+    assert.equal(ready.level, "ok");
+    assert.match(ready.detail, /canon qs/);
+    const rerouted = qs({ QUICKSILVER_API_BASE: "https://x.example" });
+    assert.equal(rerouted.level, "warn");
+    assert.match(rerouted.detail, /x\.example/);
+  } finally {
+    if (saved === undefined) delete process.env.CANON_VAULT;
+    else process.env.CANON_VAULT = saved;
+  }
+});

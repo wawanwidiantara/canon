@@ -92,7 +92,16 @@ export function doctor({ cwd = process.cwd(), env = process.env, home = os.homed
   } else out.push(cg ? ok("codegraph", "CLI installed") : warn("codegraph", "CLI not installed (optional)", "npm i -g @colbymchenry/codegraph"));
   // The skill runs as `node <skill dir>/scripts/qs.mjs`; a `qs` on PATH is the other way to have it.
   const qsSkill = path.join(home, ".claude", "skills", "quicksilver", "scripts", "qs.mjs");
-  out.push(findOnPath("qs", { env }) || fs.existsSync(qsSkill) ? ok("quicksilver", "installed (gated per project)") : warn("quicksilver", "not installed (optional)", "see the README"));
+  if (findOnPath("qs", { env }) || fs.existsSync(qsSkill)) {
+    const hasKey = Boolean(env.JEV_API_KEY || env.TYPESAFE_API_KEY) || fs.existsSync(path.join(env.QUICKSILVER_HOME || path.join(home, ".quicksilver"), "config.json"));
+    out.push(
+      !hasKey
+        ? warn("quicksilver", "installed but no API key found", "put the key in ~/.quicksilver/config.json (see docs/integrations.md)")
+        : env.QUICKSILVER_API_BASE
+          ? warn("quicksilver", `installed; QUICKSILVER_API_BASE is set (${env.QUICKSILVER_API_BASE}), so files and the key go there`, "unset it, or list its host in quicksilverHosts and keep it deliberate")
+          : ok("quicksilver", "installed, key found; agents run it as `canon qs` (gated per project)"),
+    );
+  } else out.push(warn("quicksilver", "not installed (optional)", "see the README"));
   return out;
 }
 

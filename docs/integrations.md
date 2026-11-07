@@ -45,13 +45,18 @@ With `onStop: true` the fast checks run when a turn ends and the agent is stoppe
 
 ## Quicksilver and the privacy gate
 
-[Quicksilver](https://github.com/UditAkhourii/quicksilver) sends file content to a third-party API to triage many files cheaply. It is off in every mapped project by default. A `PreToolUse` hook blocks `filter`, `classify`, `rank`, `find` and `ask` unless the project sets the flag below. It matches both a bare `qs` and the form the skill actually runs, `node ".../scripts/qs.mjs" filter ...`. `setup`, `status` and `help` are not blocked, because they send no files.
+[Quicksilver](https://github.com/UditAkhourii/quicksilver) sends file content to a third-party API (TypeSafe's Jev) to triage many files cheaply. Canon runs it only through `canon qs`:
 
-```json
-"projects": { "my-app": { "quicksilver": true } }
-```
+- In a mapped project a `PreToolUse` hook denies every direct call to `qs` or `node ".../scripts/qs.mjs"` (the data commands `filter`, `classify`, `rank`, `find`, `ask`). The denial says to use `canon qs`.
+- `canon qs <command> ...` checks in code, then runs the skill script:
+  - the project allows it: `"projects": { "my-app": { "quicksilver": true } }` (off by default);
+  - `QUICKSILVER_API_BASE` is unset, or its host is in the top-level `"quicksilverHosts": ["ai.example.com"]` of `canon.config.json`. Otherwise your files and key would go to that host;
+  - no argument names a secrets file (`.env`, keys, credentials) or a path outside the repo, in any spelling (`--state @file`, `--items`, `ask spec.json`, globs);
+  - `--no-secrets-guard` is refused.
+- `status`, `setup` and `help` send no files and are never blocked.
+- Outside a mapped project nothing is governed by a project setting, but the argument and host checks still apply to `canon qs`. A direct `qs` call there is not blocked, so choose which repos you run it in.
 
-Install Quicksilver yourself and keep it away from code you may not share. The gate only guards mapped projects: in a repo you did not map, nothing stops `qs`. It also cannot see where the data goes, so `QUICKSILVER_API_BASE` is yours to keep unset or pointed at a host you trust. Keep the key in `~/.quicksilver/config.json`, not in a repo.
+Install Quicksilver yourself, keep its key in `~/.quicksilver/config.json` (not in a repo), and keep it away from code you may not share. `canon doctor` shows whether it is installed, whether a key exists and whether `QUICKSILVER_API_BASE` is set.
 
 ## Opt-in subagents
 

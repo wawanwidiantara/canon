@@ -6,7 +6,7 @@ The source of truth is `src/schema.mjs`. This page explains it.
 
 ```
 <vault>/
-  canon.config.json            shared via git: schema_version, sync, ratify ("ask", "auto" or per type), agents, projects -> { remote, checks, mutation, quicksilver }
+  canon.config.json            shared via git: schema_version, sync, ratify ("ask", "auto" or per type), agents, quicksilverHosts, projects -> { remote, checks, mutation, quicksilver }
   .canon/local.json            per device, not committed: projects -> { repo: /abs/path }
   00_global_standards/         type global-rule, project "global", bare id
   projects/<slug>/

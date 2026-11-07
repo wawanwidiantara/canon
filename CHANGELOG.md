@@ -2,6 +2,7 @@
 
 ## 0.1.10 (unreleased)
 
+- `canon qs`: the one way to run Quicksilver in a mapped project. It checks the project setting, the API host (`quicksilverHosts`) and the input paths (no secrets files, nothing outside the repo, no `--no-secrets-guard`) in code. The hook now denies every direct call in a mapped project, even an allowed one, instead of trying to recognize each spelling. The `research`, `untangle` and `debug` skills use it for large inputs where it is allowed. `canon doctor` reports the key and base URL.
 - Fix: the Quicksilver privacy gate now also blocks the form the skill really runs, `node ".../scripts/qs.mjs" filter ...`. Before, only a bare `qs` was matched, so the skill's own calls passed. `canon doctor` now finds the skill install too.
 
 ## 0.1.9
