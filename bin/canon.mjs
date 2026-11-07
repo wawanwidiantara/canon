@@ -113,7 +113,7 @@ async function main(argv) {
       return console.log("anchored");
     case "stale": {
       const stale = f.mark ? markStale(findVault()) : findStale(findVault());
-      if (!stale.length) return console.log("no stale specs");
+      if (!stale.length) return console.log("no stale docs");
       for (const s of stale) {
         for (const p of s.problems) console.log(`${s.id}: ${p.kind} ${p.anchor}`);
         if (s.verified_at && s.now && s.verified_at.split("@")[0] !== s.now.split("@")[0]) console.log(`  note: verified on ${s.verified_at}, repo is now on ${s.now}; a branch switch can cause this`);

@@ -30,7 +30,7 @@ Every command works from anywhere inside a mapped repo or the vault. The vault i
 | Command | What it does |
 |---|---|
 | `canon validate` | Checks every doc: frontmatter, ids, links, sections, behaviors, anchors. Exit 1 on findings. |
-| `canon stale [--mark]` | Lists specs whose code changed. `--mark` sets `needs-review`. |
+| `canon stale [--mark]` | Lists specs, ADRs and data models whose code changed. `--mark` sets `needs-review`. |
 | `canon verify <doc-id>` | Confirms a doc matches the code, re-hashes the anchors and records the branch and commit. |
 | `canon status [project]` | Behavior progress per spec. |
 | `canon mutate [--base B] [--run]` | Picks the mutation tool for the repo, scoped to changed files. `--run` runs it and prints survivors only. |
