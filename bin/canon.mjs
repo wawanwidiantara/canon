@@ -38,7 +38,7 @@ const USAGE = `canon <command>
   show <id> [--section S]                  print a doc or a single section
   check [--run] [--fast] [--base B]        quality checks on changed files (lint, types, dead code, duplication, security); --run executes, capped output
   qs <command> ...                         run Quicksilver through Canon's checks (project setting, API host, input paths); the only way agents may run it in a mapped project
-  gate init | fast | full                  the repo's own gate (canon.gate.json): init writes it from existing scripts; fast/full run it, stop at the first failure
+  gate init [--e2e] | fast | full          the repo's own gate (canon.gate.json): init writes it from existing scripts (--e2e adds the browser tests); fast/full run it, stop at the first failure
   claim <phase-id> [--agent A] [--no-worktree]   take an approved phase: checks dependencies and owned paths, creates its git worktree
   release <phase-id> [--remove-worktree]   give a phase back
   ready [project]                          approved phases that can start now, and why the others cannot
@@ -254,10 +254,10 @@ async function main(argv) {
       })();
       const level = pos[0];
       if (level === "init") {
-        const { file, gate } = g.initGate(repo);
+        const { file, gate } = g.initGate(repo, { e2e: f.e2e === true });
         return console.log(`wrote ${file} (${gate.fast.length} fast, ${gate.full.length} full). Review it: only commands the repo already defines were added.`);
       }
-      if (!["fast", "full"].includes(level)) throw new Error("usage: canon gate init | fast | full");
+      if (!["fast", "full"].includes(level)) throw new Error("usage: canon gate init [--e2e] | fast | full");
       const results = g.runGate(repo, level);
       console.log(g.formatGate(level, results));
       if (results.some((r) => !r.ok)) process.exit(1);

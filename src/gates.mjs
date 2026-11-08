@@ -90,7 +90,8 @@ export function formatGate(level, results) {
 
 // Propose a gate from scripts the repo already defines. It invents no tool
 // flags: only existing lint, type-check and test scripts are listed.
-export function suggestGate(repo) {
+// `e2e` adds the browser-test command. It is opt-in: it slows every land, and a person can often check a screen faster by hand.
+export function suggestGate(repo, { e2e: browserTests = false } = {}) {
   const fast = ownScripts(repo).map((p) => ({ name: p.id.replace(/^[a-z]+:/, ""), cmd: p.args[0], args: p.args.slice(1) }));
   const full = [];
   const pkg = readJson(path.join(repo, "package.json")).scripts ?? {};
@@ -101,8 +102,8 @@ export function suggestGate(repo) {
   if (comp.test) full.push({ name: "test", cmd: "composer", args: ["run", "--no-interaction", "test"] });
   if (has(repo, "go.mod")) full.push({ name: "go-test", cmd: "go", args: ["test", "./..."] });
   if (has(repo, "Cargo.toml")) full.push({ name: "cargo-test", cmd: "cargo", args: ["test", "--quiet"] });
-  // Browser tests. The repo's own end-to-end script wins; nothing is added when `test` already runs Playwright.
-  if (usesPlaywright(repo)) {
+  // Browser tests, only when asked. The repo's own end-to-end script wins; nothing is added when `test` already runs Playwright.
+  if (browserTests && usesPlaywright(repo)) {
     const e2e = ["test:e2e", "e2e", "test:playwright"].find((n) => pkg[n]);
     const covered = /playwright/i.test(pkg.test ?? "") || (e2e && String(pkg.test ?? "").includes(e2e));
     if (!covered) full.push(e2e ? { name: "e2e", cmd: run[0], args: [...run.slice(1), e2e] } : { name: "e2e", cmd: "npx", args: ["--no-install", "playwright", "test"] });
@@ -119,10 +120,10 @@ function readJson(file) {
 }
 
 // Write canon.gate.json if absent. Returns { file, gate }.
-export function initGate(repo) {
+export function initGate(repo, options = {}) {
   const file = path.join(repo, GATE_FILE);
   if (fs.existsSync(file)) throw new Error(`${GATE_FILE} already exists; edit it by hand`);
-  const gate = suggestGate(repo);
+  const gate = suggestGate(repo, options);
   writeAtomic(file, JSON.stringify(gate, null, 2) + "\n");
   return { file, gate };
 }

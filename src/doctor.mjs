@@ -119,7 +119,8 @@ export function doctor({ cwd = process.cwd(), env = process.env, home = os.homed
 
   for (const slug of Object.keys(config.projects ?? {})) {
     const repo = repoFor(config, slug);
-    if (repo) for (const r of frontendCheck(repo, { home, env })) out.push({ ...r, name: `${r.name} ${slug}` });
+    // `browserTests: false` in the project's config: this person checks screens by hand.
+    if (repo && config.projects[slug].browserTests !== false) for (const r of frontendCheck(repo, { home, env })) out.push({ ...r, name: `${r.name} ${slug}` });
   }
 
   const here = resolveProject(vault, cwd);

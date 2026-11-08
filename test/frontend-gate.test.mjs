@@ -21,21 +21,22 @@ function repoWith({ scripts = {}, config = null, dep = false, installed = false 
 const names = (gate) => gate.full.map((c) => c.name);
 
 test("the proposed gate adds browser tests only when they are not already covered", () => {
+  const gate = (r) => suggestGate(r, { e2e: true }); // browser tests are opt-in: see optional-browser-tests.test.mjs
   // A Playwright config and a plain test script: the runner is added.
-  const a = suggestGate(repoWith({ scripts: { test: "vitest run" }, config: "playwright.config.ts" }));
+  const a = gate(repoWith({ scripts: { test: "vitest run" }, config: "playwright.config.ts" }));
   assert.deepEqual(names(a), ["test", "e2e"]);
   assert.deepEqual(a.full.find((c) => c.name === "e2e"), { name: "e2e", cmd: "npx", args: ["--no-install", "playwright", "test"] });
   // The dependency alone is enough.
-  assert.ok(names(suggestGate(repoWith({ scripts: { test: "vitest run" }, dep: true }))).includes("e2e"));
+  assert.ok(names(gate(repoWith({ scripts: { test: "vitest run" }, dep: true }))).includes("e2e"));
   // The repo's own end-to-end script wins, run through the package manager.
-  const b = suggestGate(repoWith({ scripts: { test: "vitest run", "test:e2e": "playwright test --project=chromium" }, config: "playwright.config.ts" }));
+  const b = gate(repoWith({ scripts: { test: "vitest run", "test:e2e": "playwright test --project=chromium" }, config: "playwright.config.ts" }));
   assert.deepEqual(b.full.find((c) => c.name === "e2e"), { name: "e2e", cmd: "npm", args: ["run", "--silent", "test:e2e"] });
   // The test script already runs Playwright: nothing is added.
-  assert.deepEqual(names(suggestGate(repoWith({ scripts: { test: "vitest run && playwright test" }, config: "playwright.config.ts" }))), ["test"]);
+  assert.deepEqual(names(gate(repoWith({ scripts: { test: "vitest run && playwright test" }, config: "playwright.config.ts" }))), ["test"]);
   // The test script runs the repo's e2e script: nothing is added.
-  assert.deepEqual(names(suggestGate(repoWith({ scripts: { test: "vitest run && npm run test:e2e", "test:e2e": "run-e2e" }, config: "playwright.config.ts" }))), ["test"]);
+  assert.deepEqual(names(gate(repoWith({ scripts: { test: "vitest run && npm run test:e2e", "test:e2e": "run-e2e" }, config: "playwright.config.ts" }))), ["test"]);
   // No Playwright: unchanged.
-  assert.deepEqual(names(suggestGate(repoWith({ scripts: { test: "vitest run" } }))), ["test"]);
+  assert.deepEqual(names(gate(repoWith({ scripts: { test: "vitest run" } }))), ["test"]);
 });
 
 test("doctor is silent for a repo without Playwright", () => {

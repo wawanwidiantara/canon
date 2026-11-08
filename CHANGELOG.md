@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Frontend gate, step 1. `canon gate init` adds a browser-test command to the full gate when the repo uses Playwright (the repo's own e2e script if it has one). `canon doctor` checks, for each mapped repo that uses Playwright, that the package and a Chromium browser are installed, and on Linux that the browser's system libraries are present. Each gap gets the exact fix; the library fix needs `sudo` in a terminal and says so. It works from any OS (browser folders per system, `PLAYWRIGHT_BROWSERS_PATH`) and installs nothing. The `flow` skill now requires every UI behavior to name its states and widths and a reference.
+- Frontend gate, step 1. `canon gate init --e2e` adds a browser-test command to the full gate when the repo uses Playwright (the repo's own e2e script if it has one); without the option nothing changes, because browser tests are your choice per repo. `canon doctor` checks, for each mapped repo that uses Playwright, that the package and a Chromium browser are installed, and on Linux that the browser's system libraries are present. Each gap gets the exact fix; the library fix needs `sudo` in a terminal and says so. Set `browserTests: false` on a project in the vault config to skip these checks for it. It works from any OS (browser folders per system, `PLAYWRIGHT_BROWSERS_PATH`) and installs nothing. The `flow` skill now requires every UI behavior to name its states and widths and a reference, and says each one is closed by a browser test or by `canon confirm`, as the person chooses.
 
 ## 0.1.14
 
