@@ -38,8 +38,8 @@ Use the `tdd` skill: turn the shrunk repro into a failing test at a seam that re
 - The original loop no longer fails, and the regression test passes (or the missing seam is noted).
 - All debug lines are removed (search for the prefix) and throwaway scripts are deleted.
 - Say which hypothesis was right, in the commit message or summary, so the next person learns from it.
-- If the same kind of bug has happened before, mention that `correct` could turn it into a check.
+- If the same kind of bug has happened before, mention that `retro` could turn it into a check.
 
 ## Next
 
-Add the regression test with `tdd`. If this kind of bug has happened before, run `correct`.
+Add the regression test with `tdd`. If this kind of bug has happened before, run `retro`.

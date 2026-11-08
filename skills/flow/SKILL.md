@@ -48,8 +48,7 @@ Most skills run from this flow. The manual-only ones (marked) wait until you or 
 | End of a phase | `mutation-testing`, then `quality-check` |
 | Prose reads like generic AI output | `unslop` (manual) |
 | Changes keep landing in several places | `untangle` (manual) |
-| The same correction came twice, in the code | `correct` (manual) |
-| The same correction came twice, in agent behavior | `retro` (manual) |
+| The same correction came twice, in the code or in agent behavior | `retro` (manual) |
 | Switching sessions or clearing a long chat | `handoff` (manual) |
 
 ## Do not ask to proceed

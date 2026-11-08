@@ -50,7 +50,7 @@ Done when the frontier is empty and nothing is silently assumed. Print the full 
 After confirmation:
 
 1. Small or reversible decisions go in the spec's Implementation Decisions or Testing Decisions, in prose, with no file paths or code.
-2. Costly or hard-to-reverse decisions, and any that rejected a serious alternative, get an ADR: `canon new adr <project> <slug>`. Rejected options and the reason go under Consequences.
+2. Costly or hard-to-reverse decisions, and any that rejected a serious alternative, get an ADR (the `domain-model` skill has the test for when one is warranted): `canon new adr <project> <slug>`. Rejected options and the reason go under Consequences.
 3. No spec yet: `canon new spec <project> <slug>`; it stays `draft` until the user approves it (`canon approve <id>`).
 4. Close the grill log: `canon approve <grill-log-id>`, then `canon complete <grill-log-id>`. New ADRs stay `draft` until the user approves them with `canon approve`.
 5. Run `canon validate` and report what was written.

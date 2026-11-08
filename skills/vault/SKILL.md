@@ -22,12 +22,7 @@ Docs live in the central vault, not in the app repo. The session-start message n
 - Phases list spec behaviors as `- [[spec-id#B1]]`. Do not copy behavior text.
 - A doc is `draft` until the user approves it, then `canon approve <id>` makes it `active` (the user is asked to confirm every time; never try to bypass it). Finish work with `canon complete <id>`. Replace a doc with `canon supersede <old> <new>`.
 
-## When code changes
-
-1. Update the spec first if behavior changed, then the code.
-2. After the work, run `canon stale`. If a spec is stale, re-read it against the code, fix it, then `canon verify <spec-id>`.
-3. Run `canon validate`. Fix every finding.
-4. Changes that need no doc (typo, formatting): run `canon skip-docs` in the repo.
+The close-out steps when code changes (update the spec first, `canon stale`, `canon verify`, `canon validate`, `canon skip-docs`) are in `flow`.
 
 ## Do not
 

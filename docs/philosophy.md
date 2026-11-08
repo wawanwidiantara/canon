@@ -32,6 +32,6 @@ It is not a place to store everything the agent said, and it does not replace co
 | 2 | Anchors, `canon stale`, `canon verify`, the `Stop` hook, `canon complete` |
 | 3 | `canon supersede`; the validator requires `superseded_by` |
 | 4 | `PreToolUse` hook asks you before `canon approve` and `canon supersede` |
-| 5 | `canon enforce`; the `correct` and `retro` skills |
+| 5 | `canon enforce`; the `retro` skill |
 | 6 | The search index, `canon show --section`, the session brief |
 | 7 | The whole CLI |
