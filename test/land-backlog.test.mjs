@@ -13,7 +13,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const node = (code) => ({ cmd: process.execPath, args: ["-e", code] });
 
 // Same shape as test/land.test.mjs: a vault, a repo, one anchored spec and one claimed phase that owns src/auth/.
-function setup() {
+function setup(owns = ["src/auth/"]) {
   const root = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), "canon-landbk-")));
   const vault = path.join(root, "vault");
   const repo = path.join(root, "repo");
@@ -43,7 +43,7 @@ function setup() {
     approve(vault, p.id);
     return p;
   };
-  const phase = makePhase("auth", ["src/auth/"]);
+  const phase = makePhase("auth", owns);
   const c = claim(vault, phase.id);
   const commitIn = (wt, rel, text, msg = "work") => {
     fs.mkdirSync(path.dirname(path.join(wt, rel)), { recursive: true });
@@ -153,6 +153,22 @@ test("B13: a delivered spec whose anchor went missing is not re-verified and sta
   assert.ok(log.some((l) => /not completed/.test(l)));
   assert.deepEqual(findStale(s.vault).map((x) => x.id), [s.spec.id]);
   assert.equal(s.status(s.phase.file), "active");
+});
+
+test("B16: a delivered spec whose linked test is gone stays stale, and landing still finishes and releases the claim", () => {
+  const s = setup(["src/auth/", "src/billing/"]);
+  // The branch changes the anchored file and deletes the file the behavior's test link points at, both inside the phase.
+  fs.writeFileSync(path.join(s.c.worktree, "src/auth/a.txt"), "2\n");
+  fs.rmSync(path.join(s.c.worktree, "src/billing/b.txt"));
+  s.g(s.c.worktree, "add", "-A");
+  s.g(s.c.worktree, "commit", "-qm", "change a, remove the test file");
+  setTask(s.vault, s.spec.id, "B1", "done", "src/billing/b.txt");
+  const log = land(s.vault, s.phase.id);
+  assert.ok(log.some((l) => /still stale and could not be re-verified: cannot verify .* a linked test is gone/.test(l)), log.join("\n"));
+  assert.ok(log.some((l) => /not completed/.test(l)));
+  assert.ok(log.some((l) => /released the claim/.test(l)), "landing finishes");
+  assert.equal(loadClaims(s.vault)[s.phase.id], undefined);
+  assert.deepEqual(findStale(s.vault).map((x) => x.id), [s.spec.id]);
 });
 
 test("B14: a merge that fails after a clean rebase is aborted and main is left untouched", { skip: process.platform === "win32" }, () => {
