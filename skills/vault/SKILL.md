@@ -34,3 +34,7 @@ Docs live in the central vault, not in the app repo. The session-start message n
 - Do not ask the user a question the repo can answer, and do not write "unverified" before searching for it. Search the code first; ask only about reasons and intent.
 - Do not archive or delete docs. Mark them `superseded` and set `superseded_by`.
 - Do not write a new doc to describe what an existing spec already says. Edit the spec.
+
+## Next
+
+Return to `flow` and finish the step you were on.

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Skill routing: the `flow` skill has a "Which skill when" table that names every other skill, and each other skill ends with a "Next" section naming what normally follows. The session brief points to `flow`. A test fails when a skill is added without a table row or a Next section, or when a routing line names a skill that does not exist.
+
 ## 0.1.13
 
 - `canon stale --diff`: for each stale doc, shows the changed lines of its anchored files since the commit it was last confirmed on, cut to 60 lines per file. A deleted file, a missing recorded commit or an unknown commit gets a note instead.

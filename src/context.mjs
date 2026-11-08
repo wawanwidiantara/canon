@@ -111,6 +111,7 @@ export function sessionBrief(vault, project, { pull = null } = {}) {
     if (cg.index && cg.wired.length) lines.push("Code graph is available: for \"how does X work\" or \"where is X used\" questions, call `codegraph_explore` before grepping.");
     if (loadConfig(vault).projects?.[project]?.quicksilver === true) lines.push("Quicksilver is allowed in this project for bulk fuzzy triage, never for decisions. Run it only as `canon qs <filter|classify|rank|find|ask> ...`: direct calls are blocked, and `canon qs` refuses secrets files, paths outside the repo and unlisted API hosts.");
   }
+  lines.push("Skills: the `flow` skill says which skill to use for each situation. Load it when starting non-trivial work.");
   const agents = Object.entries(loadConfig(vault).agents ?? {}).filter(([, v]) => v === true).map(([k]) => k);
   if (agents.length) lines.push(`Opt-in subagents enabled: ${agents.map((a) => `canon:${a}`).join(", ")}. Use them only where a skill says to.`);
   if (pull && !pull.ok && pull.skipped) lines.push(`Vault sync: ${pull.skipped}.`);

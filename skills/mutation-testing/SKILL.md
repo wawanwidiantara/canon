@@ -41,3 +41,7 @@ For each survivor, decide:
 - Never edit the code just to kill a mutant. Fix the test.
 - If a survivor shows the code is wrong, fix the code and add a test first (see the `tdd` skill).
 - Report: tool, files covered, score, survivors added to tests, survivors ignored and why.
+
+## Next
+
+Run `quality-check`, then close the phase in `flow`.

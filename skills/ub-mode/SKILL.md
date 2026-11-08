@@ -42,3 +42,7 @@ For every change: first make it work, then make it right, then follow practice.
 - Keep the main thread small: send bulk reading to tools such as `canon query` and the code graph, and keep only the summary.
 - Clean up what you created: temp files, debug lines, throwaway scripts. Uncommitted work waits for the user's decision.
 - Commit in small ordered steps when the user asks you to commit, each message saying why, what and how it was proven. Never push unless the user asks.
+
+## Next
+
+Build with `tdd`, then check the result with `quality-check`.

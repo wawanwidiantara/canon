@@ -16,3 +16,7 @@ The canon already holds specs, phases, decisions and progress, and the session-s
 6. If the user passed arguments, treat them as the focus of the next session.
 
 End by giving the user the path and suggesting `/clear`.
+
+## Next
+
+The next session resumes in `flow` from the session brief and this note.

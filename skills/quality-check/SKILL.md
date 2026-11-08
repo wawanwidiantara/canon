@@ -40,3 +40,7 @@ Some questions a tool cannot express: "which of these files carry AI-style fille
 ## Report
 
 One line per tool: pass or fail, and what you changed. If the same kind of finding keeps recurring across sessions, tell the user so `retro` can turn it into a stricter rule.
+
+## Next
+
+Run `unslop` on any prose you changed, then close the phase in `flow`.

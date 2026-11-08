@@ -30,3 +30,7 @@ An existing repo has behavior but no specs, so the stale check and the flow have
 - After each step: `canon validate`, then `canon approve` only when the user agrees.
 - Do not run mutation testing or quality checks here; that is for after the specs have tests.
 - If the repo is large, stop after step 3 and say what is left. Do the specs the next time that area is touched, through the normal `flow`.
+
+## Next
+
+Pick the first change and start it in `flow`. Use `domain-model` if terms are still fuzzy.

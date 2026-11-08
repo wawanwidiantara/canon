@@ -64,3 +64,7 @@ Write each fix with the problems it solves listed under it:
 `canon new audit <project> untangle-<area>`. Put the area, the evidence you used and what you left out under Scope. Put the fixes with their problems under Findings, most valuable first. Then `canon validate`.
 
 **Reply** with the fixes in order, each with the number of problems it removes and the specs it would make stale (`canon query --governs <path>`). Suggest which fix to take first through `flow`. Do not start any fix the user has not chosen.
+
+## Next
+
+Take the chosen fix through `flow`. Do not fix it outside the flow.

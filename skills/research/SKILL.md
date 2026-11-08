@@ -15,3 +15,7 @@ Research is the most expensive kind of session, so keep it in its own session an
 6. **Stop** when the question is answered well enough to decide. Do not survey for completeness.
 7. **Record it:** `canon new discovery <project> <slug>`. Question, Findings (one claim per line with its confidence), Sources (URLs). Add no recommendations the findings do not support.
 7. Tell the user the doc id and the decision it informs, and suggest the `grilling` skill next.
+
+## Next
+
+Settle the decision it feeds with `grilling`.

@@ -54,3 +54,7 @@ After confirmation:
 3. No spec yet: `canon new spec <project> <slug>`; it stays `draft` until the user approves it (`canon approve <id>`).
 4. Close the grill log: `canon approve <grill-log-id>`, then `canon complete <grill-log-id>`. New ADRs stay `draft` until the user approves them with `canon approve`.
 5. Run `canon validate` and report what was written.
+
+## Next
+
+Write the spec in `flow` (step 4). Record the costly decisions as ADRs first.

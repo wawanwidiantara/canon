@@ -28,3 +28,7 @@ Show each new check failing on a real past mistake, then passing after the fix. 
 One lesson per class: `canon new lesson <project> <slug>`. Fill Mistake, Evidence (commits, sessions) and Prevention (the check, its command). Once the check exists and is proven, `canon enforce <lesson-id>`. A rule with no check behind it that is broken again is a repeat: fix it one level higher in the same change.
 
 **Reply** with each class, its evidence, the level you chose, and why a higher level did not work. Do not apply fixes the user has not approved.
+
+## Next
+
+Run `retro` when the repeated mistake is in how the agent works, not in the code. Build the check you chose through `flow`.

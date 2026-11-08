@@ -31,6 +31,27 @@ Follow the steps in order. Scale to the size of the change, and stop at each mar
    - `canon complete <phase-id>` (it refuses if a behavior is open or a spec is stale), then `canon validate`.
 8. **Learn.** If the user corrected you or a check caught something twice, tell them it is worth a `retro`. Do not run it unasked.
 
+## Which skill when
+
+Most skills run from this flow. The manual-only ones (marked) wait until you or the user start them.
+
+| Situation | Skill |
+| --- | --- |
+| New repo to bring into the canon | `onboard` (manual) |
+| A question needs primary sources | `research` |
+| A plan or decision needs settling | `grilling` |
+| Terms are fuzzy or overloaded, or an ADR may be needed | `domain-model` |
+| Creating or closing docs | `vault` |
+| Building a behavior | `tdd` |
+| Writing code to a fixed style | `ub-mode` (manual) |
+| Something is broken, throwing or slow | `debug` |
+| End of a phase | `mutation-testing`, then `quality-check` |
+| Prose reads like generic AI output | `unslop` (manual) |
+| Changes keep landing in several places | `untangle` (manual) |
+| The same correction came twice, in the code | `correct` (manual) |
+| The same correction came twice, in agent behavior | `retro` (manual) |
+| Switching sessions or clearing a long chat | `handoff` (manual) |
+
 ## Do not ask to proceed
 
 Once the user has confirmed the grilling or agreed to a plan, carry out the whole chain (spec, phase, claim, build, land, re-verify the specs it made stale, sync) without asking whether to start the next step. Stop only for:

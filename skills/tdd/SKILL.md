@@ -35,3 +35,7 @@ Write the failing test that reproduces the bug first, at the seam where it shows
 ## When all behaviors in a phase are done
 
 Run the `mutation-testing` skill on the changed files, then `canon stale` and `canon validate`.
+
+## Next
+
+When every behavior is done, run `mutation-testing`.
