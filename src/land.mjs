@@ -89,8 +89,12 @@ function landLocked(vault, phaseId, merge) {
   const specIds = new Set([...(doc?.body ?? "").matchAll(/\[\[([^\]#]+)#B\d+\]\]/g)].map((x) => x[1]));
   for (const s of findStale(vault).filter((x) => specIds.has(x.id))) {
     if (s.problems.every((p) => p.kind === "changed" && owned(c.owns, p.anchor.slice(0, p.anchor.lastIndexOf("@"))))) {
-      verifySpec(vault, s.id);
-      step(`re-verified ${s.id} (its changed anchors are inside the phase)`);
+      try {
+        verifySpec(vault, s.id);
+        step(`re-verified ${s.id} (its changed anchors are inside the phase)`);
+      } catch (e) {
+        step(`${s.id} is still stale and could not be re-verified: ${e.message.split("\n")[0]}`);
+      }
     } else step(`${s.id} is still stale: ${describeProblems(s.problems)}`);
   }
 

@@ -30,6 +30,10 @@ const RATIFY_RE = /(^|[\s;&|(/])canon\s+(approve|supersede)\b/;
 
 export const isRatification = (command) => RATIFY_RE.test(String(command ?? ""));
 
+// A hand confirmation says a person checked the behavior. It always asks, whatever "ratify" says,
+// because an agent that could confirm for itself would make the mark mean nothing.
+const CONFIRM_RE = /(^|[\s;&|(/])canon\s+confirm\b/;
+
 // "ratify" in canon.config.json:
 //   "ask" (default)  every approve and supersede asks
 //   "auto"           none ask
@@ -50,6 +54,7 @@ export function ratifyMode(config, verb, docType) {
 // Every ratification in the command is checked, so `canon approve lesson && canon approve spec`
 // still asks. `typeOf(id)` gives a doc's type; an id it cannot resolve (or a shell variable) asks.
 export function ratificationPrompt(config, project, command, typeOf = () => null) {
+  if (project && CONFIRM_RE.test(String(command ?? ""))) return "Confirming says you checked this behavior by hand and it works. Confirm only if you did; a behavior marked this way has no test behind it.";
   if (!project || !isRatification(command)) return null;
   const each = /(?:^|[\s;&|(/])canon\s+(approve|supersede)(?:\s+([\w.-]+))?/g;
   const text = String(command);

@@ -32,7 +32,8 @@ Every command works from anywhere inside a mapped repo or the vault. The vault i
 |---|---|
 | `canon validate` | Checks every doc: frontmatter, ids, links, sections, behaviors, anchors. Exit 1 on findings. |
 | `canon stale [--mark] [--diff]` | Lists specs, ADRs and data models whose code changed. `--mark` sets `needs-review`. `--diff` shows, for each stale doc, the changed lines of its anchored files since the commit it was last confirmed on, cut to 60 lines per file. |
-| `canon verify <doc-id>` | Confirms a doc matches the code, re-hashes the anchors and records the branch and commit. |
+| `canon verify <doc-id>` | Confirms a doc matches the code, re-hashes the anchors and records the branch and commit. For a spec it also looks at the test links of its done behaviors: it refuses when a linked test file is gone, and warns when a test name no longer appears in its file. This is a text check; it does not run the tests. |
+| `canon confirm <spec-id> <B#>` | Marks a behavior done by hand, for behaviors with no automated test, and records `(manual: date)`. The hook asks you before it runs, even when `ratify` is `auto`. |
 | `canon status [project]` | Behavior progress per spec. |
 | `canon mutate [--base B] [--run]` | Picks the mutation tool for the repo, scoped to changed files. `--run` runs it and prints survivors only. |
 | `canon claim <phase-id> [--agent A] [--no-worktree]` | Takes an approved phase. Refuses a phase that is not `active`, waits on unfinished dependencies, has no `owns`, or owns paths another live claim owns. Creates the git worktree `<repo>-wt/<phase-id>` on branch `canon/<phase-id>` and records the base commit. Claims are device-local (`.canon/claims.json`). |

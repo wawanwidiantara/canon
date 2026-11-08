@@ -81,6 +81,7 @@ export function openWork(vault, project) {
       status: d.data.status,
       done: items.filter((b) => b.state === "done").length,
       total: items.length,
+      byHand: items.filter((b) => b.state === "done" && b.manual).length,
       open: items.filter((b) => b.state !== "done").map((b) => `${b.id} [${b.state}] ${b.text}`),
     });
   }
@@ -127,7 +128,7 @@ export function sessionBrief(vault, project, { pull = null } = {}) {
   if (work.length) {
     lines.push("Open specs:");
     for (const w of work) {
-      lines.push(`- ${w.id} [${w.status}] ${w.done}/${w.total} done`);
+      lines.push(`- ${w.id} [${w.status}] ${w.done}/${w.total} done${w.byHand ? ` (${w.byHand} by hand)` : ""}`);
       for (const o of w.open.slice(0, 5)) lines.push(`  - ${o}`);
     }
   } else lines.push("No open specs.");

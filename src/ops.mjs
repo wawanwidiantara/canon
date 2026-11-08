@@ -153,6 +153,18 @@ function setTaskLocked(vault, specId, bid, state, test, reopen) {
   write(doc, doc.data, updateBehavior(doc.body, bid, { state, test }));
 }
 
+// A person confirms by hand a behavior that has no automated test. The hook asks before this runs.
+export function confirmBehavior(vault, specId, bid) {
+  return lockVault(vault, `doc-${specId}`, () => {
+    const doc = mustDoc(vault, specId);
+    if (doc.data.type !== "spec") throw new Error(`${specId} is not a spec`);
+    const b = parseBehaviors(doc.body).items.find((x) => x.id === bid);
+    if (!b) throw new Error(`behavior ${bid} not found in ${specId}`);
+    if (b.test) throw new Error(`${bid} already links a test (${b.test}); a behavior carries a test or a hand confirmation, not both`);
+    write(doc, doc.data, updateBehavior(doc.body, bid, { state: "done", manual: new Date().toISOString().slice(0, 10) }));
+  });
+}
+
 export function addAnchors(vault, docId, relPaths) {
   return lockVault(vault, `doc-${docId}`, () => addAnchorsLocked(vault, docId, relPaths));
 }
@@ -267,14 +279,36 @@ export function verifySpec(vault, specId) {
   return lockVault(vault, `doc-${specId}`, () => verifySpecLocked(vault, specId));
 }
 
+// Static look at the test links of the done behaviors: the file must exist, and its text should hold the
+// test name. It cannot tell that a test still runs or still covers the behavior.
+function testLinkProblems(repo, specId, body) {
+  const missing = [];
+  const warnings = [];
+  for (const b of parseBehaviors(body).items) {
+    if (b.state !== "done" || !b.test) continue;
+    const [file, ...rest] = b.test.split("::");
+    const name = rest.join("::");
+    const full = path.join(repo, file);
+    if (!fs.existsSync(full)) {
+      missing.push(`${specId} ${b.id}: test file ${file} does not exist`);
+      continue;
+    }
+    if (name && !fs.readFileSync(full, "utf8").includes(name)) warnings.push(`${specId} ${b.id}: the name "${name}" does not appear in ${file}`);
+  }
+  return { missing, warnings };
+}
+
 function verifySpecLocked(vault, specId) {
   const doc = mustDoc(vault, specId);
   const repo = repoFor(loadConfig(vault), doc.data.project);
   if (!repo) throw new Error(`project '${doc.data.project}' has no repo mapped`);
+  const links = testLinkProblems(repo, specId, doc.body);
+  if (links.missing.length) throw new Error(`cannot verify ${specId}: a linked test is gone.\n${links.missing.map((m) => `- ${m}`).join("\n")}\nRestore the test or point the behavior at the new one with \`canon task ${specId} <B#> done --test path::name\`.`);
   const anchors = (doc.data.anchors ?? []).map((a) => anchorFor(repo, a.slice(0, a.lastIndexOf("@"))));
   const status = doc.data.status === "needs-review" ? "active" : doc.data.status;
   const at = gitPoint(repo);
   write(doc, { ...doc.data, anchors, status, ...(at ? { verified_at: at } : {}) }, doc.body);
+  return { warnings: links.warnings };
 }
 
 

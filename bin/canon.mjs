@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { approve, complete, enforce, supersede } from "../src/ops.mjs";
-import { addAnchors, findStale, init, mapProject, markStale, newDoc, setTask, staleDiff, verifySpec } from "../src/ops.mjs";
+import { addAnchors, confirmBehavior, findStale, init, mapProject, markStale, newDoc, setTask, staleDiff, verifySpec } from "../src/ops.mjs";
 import { validate } from "../src/validate.mjs";
 import { findVault, listDocs, loadConfig } from "../src/vault.mjs";
 import { resolveProject, writeSkip } from "../src/context.mjs";
@@ -20,7 +20,8 @@ const USAGE = `canon <command>
   map <project> <repo-path> [--remote U]   map a repo on this device; its git remote is saved so other devices find it by themselves
   new <type> <project> <slug> [--title T] [--depends id,id] [--stack a,b]
   validate                                 check every doc; exit 1 on findings
-  task <spec-id> <B#> <todo|doing|done> [--test path::name]
+  task <spec-id> <B#> <todo|doing|done> [--test path::name] [--reopen]
+  confirm <spec-id> <B#>                   mark a behavior done by hand (no test); the hook asks you first
   anchor <doc-id> <path...>                record code files a spec, adr or data-model claims about
   stale [--mark] [--diff]                  list specs whose code changed; --mark sets needs-review; --diff shows what changed since each was confirmed
   verify <doc-id>                          confirm the doc matches code, re-hash anchors
@@ -120,6 +121,9 @@ async function main(argv) {
     case "task":
       setTask(findVault(), pos[0], pos[1], pos[2], typeof f.test === "string" ? f.test : undefined, { reopen: f.reopen === true });
       return console.log(`${pos[1]} -> ${pos[2]}`);
+    case "confirm":
+      confirmBehavior(findVault(), pos[0], pos[1]);
+      return console.log(`${pos[1]} confirmed by hand`);
     case "anchor":
       addAnchors(findVault(), pos[0], pos.slice(1));
       return console.log("anchored");
@@ -138,9 +142,11 @@ async function main(argv) {
       process.exit(1);
       return;
     }
-    case "verify":
-      verifySpec(findVault(), pos[0]);
+    case "verify": {
+      const r = verifySpec(findVault(), pos[0]);
+      for (const w of r.warnings) console.log(`warning: ${w}`);
       return console.log(`verified ${pos[0]}`);
+    }
     case "mutate": {
       const repo = process.cwd();
       const base = typeof f.base === "string" ? f.base : undefined;

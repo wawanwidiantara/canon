@@ -47,7 +47,7 @@ Required on every doc: `id`, `type`, `project`, `stack` (array), `status`, `depe
 
 ## Behaviors
 
-In a spec: `- [ ] B1: statement (test: tests/X.php::name)`. States: `[ ]` todo, `[~]` doing, `[x]` done. Done needs a test; `canon task` also checks the file exists when the project's repo is mapped.
+In a spec: `- [ ] B1: statement (test: tests/X.php::name)`. States: `[ ]` todo, `[~]` doing, `[x]` done. Done needs a test; `canon task` also checks the file exists when the project's repo is mapped. A behavior with no automated test is confirmed by a person with `canon confirm`, which writes `(manual: 2026-11-08)` in place of the test link. The brief shows how many done behaviors were confirmed by hand.
 
 In a phase: `- [[spec-id#B1]]`. The target spec and behavior must exist.
 

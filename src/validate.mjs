@@ -113,7 +113,7 @@ function checkSpec(data, body, at) {
   for (const b of items) {
     if (seen.has(b.id)) at(`duplicate behavior ${b.id}`);
     seen.add(b.id);
-    if (b.state === "done" && !b.test) at(`behavior ${b.id} is done but has no (test: ...)`);
+    if (b.state === "done" && !b.test && !b.manual) at(`behavior ${b.id} is done but has no (test: ...) and no (manual: ...)`);
   }
   if (DELIVERED.includes(data.status) && items.length === 0) at("active spec needs at least one behavior");
 }

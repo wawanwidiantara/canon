@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- `canon confirm <spec> <B#>`: a person confirms by hand a behavior that has no automated test, for example how a screen looks. It writes `(manual: date)` in place of the test link, counts as done for `complete` and `land`, and shows in the session brief as "by hand". The hook asks before it runs even when `ratify` is `auto`, so an agent cannot confirm for itself. Reopening a behavior removes the mark.
+- `canon verify` now looks at the test links of a spec's done behaviors. It refuses when a linked test file is gone and warns when a test name no longer appears in its file. It is a text check and does not run the tests. `canon land` no longer stops if a re-verify is refused; it reports the spec as still stale.
+
 - Fix: the Quicksilver guard blocked any command that named `canon qs` inside quotes or after a slash, for example in an `echo` or a `bash -c` string. The wrapper is now allowed wherever it appears; direct `qs` calls are still blocked.
 - Fix: `canon task <spec> B# todo` silently reset a done behavior. It now needs `--reopen`.
 - Fix: the gate that `canon gate init` proposes, and `canon check`, no longer run scripts that rewrite files (`lint:fix`, `--fix`, `--write`) or never end (`--watch`).
