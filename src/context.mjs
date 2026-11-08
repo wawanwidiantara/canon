@@ -10,6 +10,7 @@ import { validate } from "./validate.mjs";
 import { deviceVault, listDocs, loadConfig, loadLocal, lockVault, saveLocal } from "./vault.mjs";
 import { gitTop, normalizeRemote, originOf } from "./remote.mjs";
 import { pullIfDue, syncSettings, vaultState } from "./sync.mjs";
+import { lastRetro, loadDigests } from "./digest.mjs";
 import { describeProblems, repoFor, worktreeOf } from "./anchors.mjs";
 import { formatGate, loadGate, runGate } from "./gates.mjs";
 import { canonical, configDir, isWithin } from "./platform.mjs";
@@ -97,6 +98,9 @@ export function staleFor(vault, project) {
     .map(({ id, problems }) => ({ id, problems }));
 }
 
+// Corrections since the last retro that make one worth running.
+const RETRO_DUE_CORRECTIONS = 3;
+
 export function sessionBrief(vault, project, { pull = null } = {}) {
   const work = openWork(vault, project);
   const findings = projectFindings(vault, project);
@@ -114,6 +118,9 @@ export function sessionBrief(vault, project, { pull = null } = {}) {
   lines.push("Skills: the `flow` skill says which skill to use for each situation. Load it when starting non-trivial work.");
   const agents = Object.entries(loadConfig(vault).agents ?? {}).filter(([, v]) => v === true).map(([k]) => k);
   if (agents.length) lines.push(`Opt-in subagents enabled: ${agents.map((a) => `canon:${a}`).join(", ")}. Use them only where a skill says to.`);
+  const digests = loadDigests(vault, project, lastRetro(vault, project));
+  const corrections = digests.reduce((n, d) => n + d.corrections.length, 0);
+  if (corrections >= RETRO_DUE_CORRECTIONS) lines.push(`Retro is due: ${digests.length} sessions, ${corrections} corrections since the last retro. Suggest running the \`retro\` skill when the current task is done; do not run it unasked.`);
   if (pull && !pull.ok && pull.skipped) lines.push(`Vault sync: ${pull.skipped}.`);
   const vs = vaultState(vault);
   if (vs.git && vs.hasRemote && vs.ahead > 0) lines.push(`Vault has ${vs.ahead} commit(s) not pushed; \`canon sync\` publishes them.`);

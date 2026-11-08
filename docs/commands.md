@@ -62,6 +62,6 @@ Every command works from anywhere inside a mapped repo or the vault. The vault i
 | Command | What it does |
 |---|---|
 | `canon digest <transcript.jsonl> [--project P]` | Summarizes a session. The session-end hook does this for you. |
-| `canon retro [project] [--done]` | Reports on session digests since the last retro. `--done` marks them reviewed. |
+| `canon retro [project] [--done]` | Reports on session digests since the last retro, including which skills and subagents ran. `--done` marks them reviewed. The session brief says a retro is due once three corrections have piled up. |
 | `canon usage [project]` | Tokens per week, costliest sessions, most used tools. |
 | `canon sync [--pull-only]` | Commits vault changes, rebases on the remote, pushes. Stops on a conflict and keeps your commit. |

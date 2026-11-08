@@ -33,6 +33,7 @@ export function buildDigest(jsonl) {
     errors: [],
     repeated_reads: [],
     big_results: [],
+    used: { skills: {}, agents: {} }, // how many times each skill and subagent type ran
   };
   const usageById = new Map();
   const uses = new Map(); // tool_use id -> { name, input }
@@ -70,6 +71,8 @@ export function buildDigest(jsonl) {
         if (b?.type !== "tool_use") continue;
         uses.set(b.id, { name: b.name, input: b.input ?? {} });
         d.tools[b.name] = (d.tools[b.name] ?? 0) + 1;
+        if (b.name === "Skill" && b.input?.skill) d.used.skills[b.input.skill] = (d.used.skills[b.input.skill] ?? 0) + 1;
+        if ((b.name === "Agent" || b.name === "Task") && b.input?.subagent_type) d.used.agents[b.input.subagent_type] = (d.used.agents[b.input.subagent_type] ?? 0) + 1;
         const fp = b.input?.file_path;
         if (b.name === "Read" && fp) reads.set(fp, (reads.get(fp) ?? 0) + 1);
         if ((b.name === "Edit" || b.name === "Write" || b.name === "MultiEdit") && fp) edited.add(fp);
@@ -199,6 +202,15 @@ export function retroReport(digests, { max = 6000 } = {}) {
   if (big.length) {
     L.push("", `Tool results over ${BIG_RESULT} chars (tool economy):`);
     for (const [t, n] of big) L.push(`- ${t}: ${n}`);
+  }
+  // Digests written before `used` existed have no such field.
+  for (const [title, key] of [["Skills used", "skills"], ["Subagents used", "agents"]]) {
+    const total = new Map();
+    for (const d of digests) for (const [k, n] of Object.entries(d.used?.[key] ?? {})) total.set(k, (total.get(k) ?? 0) + n);
+    if (total.size) {
+      L.push("", `${title} (name count, across these sessions):`);
+      for (const [k, n] of [...total].sort((a, b) => b[1] - a[1])) L.push(`- ${k} ${n}`);
+    }
   }
   const text = L.join("\n");
   return text.length > max ? text.slice(0, max) + "\n… (truncated)" : text;

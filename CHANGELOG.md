@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Usage signals: the session digest now records how many times each skill and subagent type ran, and `canon retro` lists them, so keep-or-cut decisions rest on use. The session brief says a retro is due once the digests since the last retro hold three corrections; it only suggests, and a finished retro clears it. Digests written earlier still load.
 - The `ub-mode` skill is removed. Five of its habits (redesign from first principles, subtract before you add, attack the premise, idempotent operations, one writer per piece of state) are now in the Build step of `flow`, where every change passes through. If you ran `/canon:ub-mode`, there is nothing to run now.
 - Skill trim: the `correct` skill is merged into `retro`, which now takes evidence from session digests and from the repo's own history and holds the fix ladder once. `ub-mode` keeps only its own principles and points to the process skills. `vault` points to `flow` for the close-out steps. `grilling` points to `domain-model` for the ADR test. If you ran `/canon:correct`, run `/canon:retro` instead.
 - Skill routing: the `flow` skill has a "Which skill when" table that names every other skill, and each other skill ends with a "Next" section naming what normally follows. The session brief points to `flow`. A test fails when a skill is added without a table row or a Next section, or when a routing line names a skill that does not exist.
