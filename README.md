@@ -46,6 +46,7 @@ Most setups end in one of two places: instruction files that grow until nobody r
 | Anchors and stale check | A spec records hashes of the code it governs. When that code changes, `canon stale` says so, and `canon complete` refuses to close work on a stale spec. |
 | Hooks | At session start the agent gets a short brief: open work, stale specs, sync state. At the end of a turn it is stopped once if code changed and no doc did. The hooks do nothing in repos you did not map. |
 | Test-first flow | Skills for grilling, spec, tdd, mutation testing, quality checks, debugging and retro, tied together by a `flow` skill. |
+| Frontend | `frontend` builds UI from a reference and the project's design-system doc, with states, widths and a list of generic-design tells to avoid. `ui-review` stress-tests a screen with realistic worst-case data. Browser tests are your choice per repo. |
 | Mutation testing | Runs the right tool for the stack on the changed files and shows only the surviving mutants. |
 | Quality checks | Lint, types, dead code, duplication and security rules on changed files, without Sonar. Uses the repo's own scripts first. |
 | Search | Full-text search and a link graph over the vault, built into Node with no database to run. |
@@ -126,6 +127,9 @@ Several skills are adapted from other people's work, and many ideas come from it
 - **Matt Pocock**, [mattpocock/skills](https://github.com/mattpocock/skills) (MIT): grilling, spec and ticket flow, TDD, retro, and the rule that specs avoid file paths and code snippets.
 - **Robert C. Martin (Uncle Bob)**, [unclebob/ub-mode](https://github.com/unclebob/ub-mode) (MIT): the build habits in the `flow` skill.
 - **Lauren Tan (poteto)**, [pstack](https://github.com/cursor/plugins/tree/main/pstack) in cursor/plugins (MIT): the fix ladder now in `retro`, `unslop`, and the approach of turning repeated mistakes into structural checks.
+- **Anthropic**, [anthropics/skills](https://github.com/anthropics/skills) (Apache-2.0): the `frontend-design` skill. The plan before code, the habit of naming the clichés, the copy rules and the quality floor in `frontend` come from it, rewritten.
+- **Emil Kowalski**, [emilkowalski/skills](https://github.com/emilkowalski/skills) (MIT): the `break-ui` skill, which `ui-review` adapts: change the data not the component, plausible worst-case values, report before fixing.
+- **Paul Bakaus**, [pbakaus/impeccable](https://github.com/pbakaus/impeccable) (Apache-2.0): the idea of a deterministic design detector as a gate command, which `frontend` mentions as optional.
 - **Caldo**, [caldoai/skills](https://github.com/caldoai/skills) (MIT): the `untangle-codebase` skill, which `untangle` narrows to a read-only audit of one area. The three kinds of structural problem and the special-case test come from it.
 
 Where a skill here is adapted from one of these, its file says so, and the original license applies to the copied parts.

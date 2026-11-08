@@ -51,6 +51,8 @@ Most skills run from this flow. The manual-only ones (marked) wait until you or 
 | Terms are fuzzy or overloaded, or an ADR may be needed | `domain-model` |
 | Creating or closing docs | `vault` |
 | Building a behavior | `tdd` |
+| Building or changing UI: a screen, component, style or copy | `frontend` |
+| A finished screen needs a stress test or a UI review | `ui-review` |
 | Something is broken, throwing or slow | `debug` |
 | End of a phase | `mutation-testing`, then `quality-check` |
 | Prose reads like generic AI output | `unslop` (manual) |
