@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.14
 
 - `canon confirm <spec> <B#>`: a person confirms by hand a behavior that has no automated test, for example how a screen looks. It writes `(manual: date)` in place of the test link, counts as done for `complete` and `land`, and shows in the session brief as "by hand". The hook asks before it runs even when `ratify` is `auto`, so an agent cannot confirm for itself. Reopening a behavior removes the mark.
 - `canon verify` now looks at the test links of a spec's done behaviors. It refuses when a linked test file is gone and warns when a test name no longer appears in its file. It is a text check and does not run the tests. `canon land` no longer aborts after the merge if a re-verify is refused; it reports the spec as still stale, finishes, and releases the claim.
