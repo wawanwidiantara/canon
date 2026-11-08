@@ -29,12 +29,6 @@ test("vault points to flow for the close-out steps", () => {
   assert.match(t, /`flow`/);
 });
 
-test("ub-mode keeps only its own principles", () => {
-  const t = skill("ub-mode");
-  assert.ok(t.trimEnd().split("\n").length <= 30, "ub-mode is longer than 30 lines");
-  assert.doesNotMatch(t, /^## Practice/m);
-});
-
 test("grilling points to domain-model for the ADR test", () => {
   assert.match(skill("grilling"), /`domain-model`/);
 });

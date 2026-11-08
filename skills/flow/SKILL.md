@@ -3,6 +3,8 @@ name: flow
 description: The working flow for features, changes and fixes in a project mapped to canon: research, grill, spec, phase, tdd, mutation, check, close. Use when starting or resuming any non-trivial work in a mapped project.
 ---
 
+<!-- The build habits are adapted from unclebob/ub-mode (MIT, Robert C. Martin). -->
+
 Follow the steps in order. Scale to the size of the change, and stop at each marked gate for the user. The session-start message names the project; if it does not, this repo is not mapped and none of this applies.
 
 ## Size the work first
@@ -22,7 +24,12 @@ Follow the steps in order. Scale to the size of the change, and stop at each mar
    - If it is listed but a fresh subagent cannot start, stop and tell the user. Never run the review in the main session, because a review with the conversation in context is not a cold read.
    **Gate:** the user reads it, then run `canon approve <spec-id>`. Claude Code will ask the user to confirm; say what you are asking them to approve and do not try to work around the prompt.
 5. **Phase.** For anything larger than one sitting, `canon new phase` listing the behaviors as `- [[spec-id#B1]]`, then `canon approve <phase-id>`. Keep phases small enough to finish in one or two sessions.
-6. **Build.** For each behavior run the `tdd` skill: `canon task <spec> B1 doing`, red, green, `canon task <spec> B1 done --test path::name`. Keep the spec in step with the code as you go.
+6. **Build.** For each behavior run the `tdd` skill: `canon task <spec> B1 doing`, red, green, `canon task <spec> B1 done --test path::name`. Keep the spec in step with the code as you go. Shape the code with these habits:
+   - Redesign from first principles. Ask what you would have built had the requirement been there from the start, instead of bolting it onto the old design.
+   - Subtract before you add. Take complexity out first.
+   - Attack the premise. When two fixes that share an assumption fail the same way, write the assumption in one sentence and remove it before trying again.
+   - Make operations idempotent: running twice, or after a crash halfway, ends in the same state.
+   - Give each piece of state one writer, enforced by structure.
 7. **Close the phase.**
    - `mutation-testing` on the changed files, then add the tests that matter.
    - `quality-check`, fix real findings. When the repo has `canon.gate.json`, `canon gate full` must pass before you close.
@@ -43,7 +50,6 @@ Most skills run from this flow. The manual-only ones (marked) wait until you or 
 | Terms are fuzzy or overloaded, or an ADR may be needed | `domain-model` |
 | Creating or closing docs | `vault` |
 | Building a behavior | `tdd` |
-| Writing code to a fixed style | `ub-mode` (manual) |
 | Something is broken, throwing or slow | `debug` |
 | End of a phase | `mutation-testing`, then `quality-check` |
 | Prose reads like generic AI output | `unslop` (manual) |

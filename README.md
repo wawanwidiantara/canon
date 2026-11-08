@@ -124,7 +124,7 @@ Version 0.1. Known limits:
 Several skills are adapted from other people's work, and many ideas come from it:
 
 - **Matt Pocock**, [mattpocock/skills](https://github.com/mattpocock/skills) (MIT): grilling, spec and ticket flow, TDD, retro, and the rule that specs avoid file paths and code snippets.
-- **Robert C. Martin (Uncle Bob)**, [unclebob/ub-mode](https://github.com/unclebob/ub-mode) (MIT): the reduced-principles coding mode.
+- **Robert C. Martin (Uncle Bob)**, [unclebob/ub-mode](https://github.com/unclebob/ub-mode) (MIT): the build habits in the `flow` skill.
 - **Lauren Tan (poteto)**, [pstack](https://github.com/cursor/plugins/tree/main/pstack) in cursor/plugins (MIT): the fix ladder now in `retro`, `unslop`, and the approach of turning repeated mistakes into structural checks.
 - **Caldo**, [caldoai/skills](https://github.com/caldoai/skills) (MIT): the `untangle-codebase` skill, which `untangle` narrows to a read-only audit of one area. The three kinds of structural problem and the special-case test come from it.
 
