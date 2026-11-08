@@ -2,10 +2,12 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { execFileSync } from "node:child_process";
 import { repoFor } from "./anchors.mjs";
 import { inspect as cgInspect } from "./codegraph.mjs";
 import { resolveProject, resolveVault } from "./context.mjs";
 import { findOnPath } from "./platform.mjs";
+import { browsersDir, chromiumFolders, findBrowserBinary, missingLibraries, packageInstalled, usesPlaywright } from "./playwright.mjs";
 import { SCHEMA_VERSION } from "./schema.mjs";
 import { vaultState } from "./sync.mjs";
 import { loadConfig } from "./vault.mjs";
@@ -35,6 +37,41 @@ export function permissionCheck(cwd, home = os.homedir()) {
     }
   }
   return warn("permission", "`Bash(canon:*)` is not in any permissions.allow list", "add \"Bash(canon:*)\" to permissions.allow in ~/.claude/settings.json so the agent can run canon without a prompt");
+}
+
+const lddListing = (bin) => {
+  try {
+    return execFileSync("ldd", [bin], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 10000 });
+  } catch {
+    return null;
+  }
+};
+
+// Can this machine run browser tests for this repo? Silent when the repo does not use Playwright.
+// `run(binary)` lists a binary's shared libraries (ldd); the system, home folder and environment are
+// parameters so every system can be checked from one machine. Nothing is installed or launched.
+export function frontendCheck(repo, { platform = process.platform, home = os.homedir(), env = process.env, run = lddListing } = {}) {
+  if (!usesPlaywright(repo)) return [];
+  const out = [];
+  out.push(packageInstalled(repo) ? ok("playwright", "installed in the repo") : warn("playwright", "the repo uses Playwright but it is not installed here", "run `npm install` (or your package manager's install) in the repo"));
+  const dir = browsersDir({ repo, platform, home, env });
+  const folders = chromiumFolders(dir);
+  if (!folders.length) {
+    out.push(warn("playwright browser", `no Chromium downloaded in ${dir}`, "run `npx playwright install chromium` in the repo"));
+    return out;
+  }
+  out.push(ok("playwright browser", dir));
+  if (platform !== "linux") return out;
+  const bin = findBrowserBinary(dir, folders);
+  const listing = bin ? run(bin) : null;
+  if (listing == null) return out;
+  const missing = missingLibraries(listing);
+  out.push(
+    missing.length
+      ? warn("playwright libraries", `the browser is missing system libraries: ${missing.join(", ")}`, "run `sudo npx playwright install-deps chromium`. It needs a terminal with administrator rights, so run it yourself; the agent cannot")
+      : ok("playwright libraries", "all present"),
+  );
+  return out;
 }
 
 export function doctor({ cwd = process.cwd(), env = process.env, home = os.homedir() } = {}) {
@@ -78,6 +115,11 @@ export function doctor({ cwd = process.cwd(), env = process.env, home = os.homed
     else if (!fs.existsSync(repo)) out.push(warn(`project ${slug}`, `${repo} does not exist`, `run \`canon map ${slug} <new path>\``));
     else if (!p.remote) out.push(warn(`project ${slug}`, "no git remote recorded, so other devices cannot find it by themselves", `add an origin remote to the repo, then \`canon map ${slug} ${repo}\``));
     else out.push(ok(`project ${slug}`, repo));
+  }
+
+  for (const slug of Object.keys(config.projects ?? {})) {
+    const repo = repoFor(config, slug);
+    if (repo) for (const r of frontendCheck(repo, { home, env })) out.push({ ...r, name: `${r.name} ${slug}` });
   }
 
   const here = resolveProject(vault, cwd);

@@ -16,6 +16,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { tail, ownScripts } from "./check.mjs";
 import { spawnPortable } from "./platform.mjs";
+import { usesPlaywright } from "./playwright.mjs";
 import { writeAtomic } from "./fsx.mjs";
 
 export const GATE_FILE = "canon.gate.json";
@@ -100,6 +101,12 @@ export function suggestGate(repo) {
   if (comp.test) full.push({ name: "test", cmd: "composer", args: ["run", "--no-interaction", "test"] });
   if (has(repo, "go.mod")) full.push({ name: "go-test", cmd: "go", args: ["test", "./..."] });
   if (has(repo, "Cargo.toml")) full.push({ name: "cargo-test", cmd: "cargo", args: ["test", "--quiet"] });
+  // Browser tests. The repo's own end-to-end script wins; nothing is added when `test` already runs Playwright.
+  if (usesPlaywright(repo)) {
+    const e2e = ["test:e2e", "e2e", "test:playwright"].find((n) => pkg[n]);
+    const covered = /playwright/i.test(pkg.test ?? "") || (e2e && String(pkg.test ?? "").includes(e2e));
+    if (!covered) full.push(e2e ? { name: "e2e", cmd: run[0], args: [...run.slice(1), e2e] } : { name: "e2e", cmd: "npx", args: ["--no-install", "playwright", "test"] });
+  }
   return { fast, full };
 }
 

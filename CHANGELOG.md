@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Frontend gate, step 1. `canon gate init` adds a browser-test command to the full gate when the repo uses Playwright (the repo's own e2e script if it has one). `canon doctor` checks, for each mapped repo that uses Playwright, that the package and a Chromium browser are installed, and on Linux that the browser's system libraries are present. Each gap gets the exact fix; the library fix needs `sudo` in a terminal and says so. It works from any OS (browser folders per system, `PLAYWRIGHT_BROWSERS_PATH`) and installs nothing. The `flow` skill now requires every UI behavior to name its states and widths and a reference.
+
 ## 0.1.14
 
 - `canon confirm <spec> <B#>`: a person confirms by hand a behavior that has no automated test, for example how a screen looks. It writes `(manual: date)` in place of the test link, counts as done for `complete` and `land`, and shows in the session brief as "by hand". The hook asks before it runs even when `ratify` is `auto`, so an agent cannot confirm for itself. Reopening a behavior removes the mark.
