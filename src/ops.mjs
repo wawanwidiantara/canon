@@ -130,15 +130,17 @@ function write(doc, data, body) {
   writeAtomic(doc.file, stringify(data, body));
 }
 
-export function setTask(vault, specId, bid, state, test) {
-  return lockVault(vault, `doc-${specId}`, () => setTaskLocked(vault, specId, bid, state, test));
+export function setTask(vault, specId, bid, state, test, { reopen = false } = {}) {
+  return lockVault(vault, `doc-${specId}`, () => setTaskLocked(vault, specId, bid, state, test, reopen));
 }
 
-function setTaskLocked(vault, specId, bid, state, test) {
+function setTaskLocked(vault, specId, bid, state, test, reopen) {
   const doc = mustDoc(vault, specId);
   if (doc.data.type !== "spec") throw new Error(`${specId} is not a spec`);
   const b = parseBehaviors(doc.body).items.find((x) => x.id === bid);
   if (!b) throw new Error(`behavior ${bid} not found in ${specId}`);
+  // A finished behavior stays finished unless the caller says it is being reopened.
+  if (b.state === "done" && state && state !== "done" && !reopen) throw new Error(`${bid} is done; pass --reopen to set it back to ${state}`);
   const testRef = test ?? b.test;
   if (state === "done") {
     if (!testRef) throw new Error(`${bid} needs a test before it can be done (pass --test path::name)`);

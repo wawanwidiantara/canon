@@ -79,6 +79,10 @@ const list = (s) => (s ? String(s).split(",").filter(Boolean) : []);
 async function main(argv) {
   const [cmd, ...rest] = argv;
   const { pos, f } = flags(rest);
+  if (cmd === "--version" || cmd === "-v") {
+    const fs = await import("node:fs");
+    return console.log(JSON.parse(fs.readFileSync(new URL("../package.json", import.meta.url), "utf8")).version);
+  }
   switch (cmd) {
     case "init": {
       const dir = pos[0] ?? process.cwd();
@@ -114,7 +118,7 @@ async function main(argv) {
       return console.log("canon validate: OK");
     }
     case "task":
-      setTask(findVault(), pos[0], pos[1], pos[2], typeof f.test === "string" ? f.test : undefined);
+      setTask(findVault(), pos[0], pos[1], pos[2], typeof f.test === "string" ? f.test : undefined, { reopen: f.reopen === true });
       return console.log(`${pos[1]} -> ${pos[2]}`);
     case "anchor":
       addAnchors(findVault(), pos[0], pos.slice(1));

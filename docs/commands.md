@@ -17,7 +17,8 @@ Every command works from anywhere inside a mapped repo or the vault. The vault i
 | Command | What it does |
 |---|---|
 | `canon new <type> <project> <slug> [--title T] [--depends id,id] [--stack a,b]` | Creates a doc with the id, filename, frontmatter and section headings in place. Types are listed in [schema.md](schema.md). |
-| `canon task <spec-id> <B#> <todo\|doing\|done> [--test path::name]` | Moves a behavior. `done` needs a test, and the test file must exist. |
+| `canon task <spec-id> <B#> <todo\|doing\|done> [--test path::name] [--reopen]` | Moves a behavior. `done` needs a test, and the test file must exist. A done behavior only moves back with `--reopen`. |
+| `canon --version`, `canon -v` | Prints the version of the copy you are running. |
 | `canon anchor <doc-id> <path...>` | Records the code files a spec, ADR or data model makes claims about, with a hash of each. Refused inside a linked worktree: anchor from the main checkout after the branch lands. |
 | `canon approve <id>` | Draft to active, only if the doc validates as active. Asks you to confirm every time. |
 | `canon complete <id>` | Active to completed. A spec or phase needs every behavior done and no stale code. |

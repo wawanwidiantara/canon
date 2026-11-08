@@ -6,7 +6,9 @@ const QS_RE = /(^|[\s;&|("'/])qs(\.mjs)?["']?\s+(filter|classify|rank|find|ask)\
 
 // `canon qs ...` is the sanctioned wrapper, which checks the project, host and inputs itself.
 // Take it out before testing, so `canon qs filter x && qs filter y` still finds the second call.
-const WRAPPER_RE = /(^|[\s;&|(])canon\s+qs\b/g;
+// It is removed after any character QS_RE accepts before `qs`, so the wrapper named inside quotes or
+// after a slash (`echo "canon qs ..."`, `bash -c "canon qs ..."`) is not taken for a direct call.
+const WRAPPER_RE = /(^|[\s;&|("'/])canon\s+qs\b/g;
 
 export const isQuicksilverCall = (command) => QS_RE.test(String(command ?? "").replace(WRAPPER_RE, "$1"));
 

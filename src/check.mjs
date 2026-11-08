@@ -49,15 +49,20 @@ function scriptRunner(repo) {
 const OWN_NAMES = /^(lint|lint:.+|typecheck|type-check|tsc|check|analy[sz]e|stan|phpstan|pint|format:check|fmt:check|test:lint|test:types)$/;
 
 // Quality scripts the repo already defines.
+// A gate only checks. Skip scripts that rewrite files (fixers) or never end (watchers).
+const REWRITES_NAME = /fix|write|watch/i;
+const REWRITES_CMD = /(^|[\s"'])(--fix|--write|--watch|-w)(\s|"|'|=|$)/;
+const checksOnly = (name, cmd) => !REWRITES_NAME.test(name) && !REWRITES_CMD.test(typeof cmd === "string" ? cmd : JSON.stringify(cmd));
+
 export function ownScripts(repo) {
   const out = [];
   const pkg = json(repo, "package.json").scripts ?? {};
   for (const [name, cmd] of Object.entries(pkg)) {
-    if (OWN_NAMES.test(name)) out.push({ id: `npm:${name}`, label: `package.json script "${name}"`, args: [...scriptRunner(repo), name], scope: "project", verified: true, text: cmd });
+    if (OWN_NAMES.test(name) && checksOnly(name, cmd)) out.push({ id: `npm:${name}`, label: `package.json script "${name}"`, args: [...scriptRunner(repo), name], scope: "project", verified: true, text: cmd });
   }
   const comp = json(repo, "composer.json").scripts ?? {};
   for (const [name, cmd] of Object.entries(comp)) {
-    if (OWN_NAMES.test(name)) out.push({ id: `composer:${name}`, label: `composer script "${name}"`, args: ["composer", "run", "--no-interaction", name], scope: "project", verified: true, text: JSON.stringify(cmd) });
+    if (OWN_NAMES.test(name) && checksOnly(name, cmd)) out.push({ id: `composer:${name}`, label: `composer script "${name}"`, args: ["composer", "run", "--no-interaction", name], scope: "project", verified: true, text: JSON.stringify(cmd) });
   }
   return out;
 }
