@@ -4,7 +4,7 @@ import { execFileSync, spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { addAnchors, approve, findStale, init, mapProject, newDoc, setTask } from "../src/ops.mjs";
 import { claim, loadClaims } from "../src/packets.mjs";
 import { land } from "../src/land.mjs";
@@ -127,7 +127,7 @@ test("B12: two lands in one project never run their gates at the same time", asy
 
   const run = (phaseId) =>
     new Promise((resolve) => {
-      const script = `import { land } from ${JSON.stringify(path.join(ROOT, "src/land.mjs"))}; console.log(land(${JSON.stringify(s.vault)}, ${JSON.stringify(phaseId)}).join("\\n"));`;
+      const script = `import { land } from ${JSON.stringify(pathToFileURL(path.join(ROOT, "src/land.mjs")).href)}; console.log(land(${JSON.stringify(s.vault)}, ${JSON.stringify(phaseId)}).join("\\n"));`;
       const p = spawn(process.execPath, ["--input-type=module", "-e", script], { cwd: s.repo });
       let out = "";
       p.stdout.on("data", (d) => (out += d));
