@@ -44,7 +44,7 @@ Most setups end in one of two places: instruction files that grow until nobody r
 | Vault | One private git repo for specs, phases, ADRs, lessons and glossaries. A schema and a validator keep every doc the same shape. |
 | Spec first | A spec lists behaviors as testable lines. Each behavior links to the test that proves it. Specs hold no file paths or code, because those go stale. |
 | Anchors and stale check | A spec records hashes of the code it governs. When that code changes, `canon stale` says so, and `canon complete` refuses to close work on a stale spec. |
-| Hooks | At session start the agent gets a short brief: open work, stale specs, sync state. At the end of a turn it is stopped once if code changed and no doc did. The hooks do nothing in repos you did not map. |
+| Hooks | At session start the agent gets a short brief: open work, stale specs, sync state. When the agent edits a file that active specs anchor, one line names those specs so it updates them in the same change. At the end of a turn it is stopped once if code changed and no doc did. The hooks do nothing in repos you did not map. |
 | Test-first flow | Skills for grilling, spec, tdd, mutation testing, quality checks, debugging and retro, tied together by a `flow` skill. |
 | Frontend | `frontend` builds UI from a reference and the project's design-system doc, with states, widths and a list of generic-design tells to avoid. `ui-review` stress-tests a screen with realistic worst-case data. Browser tests are your choice per repo. |
 | Mutation testing | Runs the right tool for the stack on the changed files and shows only the surviving mutants. |

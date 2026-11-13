@@ -13,11 +13,12 @@ import { pullIfDue, syncSettings, vaultState } from "./sync.mjs";
 import { lastRetro, loadDigests } from "./digest.mjs";
 import { describeProblems, repoFor, worktreeOf } from "./anchors.mjs";
 import { formatGate, loadGate, runGate } from "./gates.mjs";
-import { canonical, configDir, isWithin } from "./platform.mjs";
+import { canonical, configDir, isWithin, toPosix } from "./platform.mjs";
 import { inspect as cgInspect } from "./codegraph.mjs";
 import { formatResults, planChecks, runChecks } from "./check.mjs";
 import { changedFiles } from "./mutation.mjs";
 import { findStale } from "./ops.mjs";
+import { governingDocs } from "./index.mjs";
 
 // Vault location: $CANON_VAULT, else the path stored in <config dir>/vault
 // (~/.config/canon on Linux and macOS, %APPDATA%\canon on Windows).
@@ -273,4 +274,24 @@ export function shouldBlock(sessionId, reasons) {
   if (seen.includes(sig)) return false;
   fs.appendFileSync(f, sig + "\n");
   return true;
+}
+
+// One line naming the active docs that anchor `file`, or null. These are the docs the Stop
+// hook would report stale once the file changes, so keep this set in step with findStale.
+const GOVERNING_CAP = 5;
+export function governingLine(vault, project, cwd, file) {
+  if (!file) return null;
+  const repo = repoFor(loadConfig(vault), project, cwd);
+  if (!repo) return null;
+  const root = canonical(repo);
+  const target = canonical(path.resolve(cwd, file));
+  if (!isWithin(root, target)) return null;
+  const rel = toPosix(path.relative(root, target));
+  const ids = governingDocs(vault, rel)
+    .filter((d) => d.project === project && d.status === "active")
+    .map((d) => d.id);
+  if (!ids.length) return null;
+  const shown = ids.slice(0, GOVERNING_CAP).join(", ");
+  const more = ids.length > GOVERNING_CAP ? ` and ${ids.length - GOVERNING_CAP} more` : "";
+  return `These docs anchor ${rel}: ${shown}${more}. They go stale unless their text is updated in this change; \`canon verify <id>\` confirms each.`;
 }

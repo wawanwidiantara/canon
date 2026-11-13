@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { agentDenial, quicksilverDenial, ratificationPrompt } from "../src/gate.mjs";
-import { resolveVault } from "../src/context.mjs";
+import { governingLine, resolveVault } from "../src/context.mjs";
 import { findDoc, loadConfig } from "../src/vault.mjs";
 import fs from "node:fs";
 import path from "node:path";
@@ -20,12 +20,21 @@ guard(() => {
     return;
   }
   if (FILE_TOOLS.has(input.tool_name)) {
-    // Fast path: no claims on this device means nothing to check.
     const vault = resolveVault();
-    if (!vault || !fs.existsSync(path.join(vault, ".canon", "claims.json"))) return;
+    if (!vault || !fs.existsSync(vault)) return;
+    const cwd = input.cwd ?? process.cwd();
     const file = input.tool_input?.file_path ?? input.tool_input?.notebook_path;
-    const reason = ownershipDenial(vault, input.cwd ?? process.cwd(), file);
-    if (reason) process.stdout.write(JSON.stringify({ hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: reason } }));
+    // Ownership first, and only where this device has claims. A denial is the whole answer.
+    if (fs.existsSync(path.join(vault, ".canon", "claims.json"))) {
+      const reason = ownershipDenial(vault, cwd, file);
+      if (reason) {
+        process.stdout.write(JSON.stringify({ hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: reason } }));
+        return;
+      }
+    }
+    const t = target(input);
+    const line = t && governingLine(vault, t.project, cwd, file);
+    if (line) process.stdout.write(JSON.stringify({ hookSpecificOutput: { hookEventName: "PreToolUse", additionalContext: line } }));
     return;
   }
   const t = target(input);

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Edit-time hint. When the agent edits a file that active specs, ADRs or data models anchor, the PreToolUse hook adds one line naming them (up to 5, then "and N more"), so their text is updated in the same change instead of the Stop hook reporting them stale afterwards. It adds context only: it never blocks or asks, stays silent on files nothing anchors, and an ownership denial still wins.
+
 ## 0.1.15
 
 - Two skills for UI. `frontend` builds a screen from a reference (never a blank page) and the project's design-system doc, which is a context doc anchored to the token file so `canon stale` catches drift. It requires empty, loading, error and success states, checks at 375, 768 and 1280, real content, copy rules and an accessibility floor, and lists the generic-design tells to avoid. It keeps browser tests optional and says to turn off any design detector's telemetry. `ui-review` stress-tests a finished screen with one plausible worst-case dataset, audits it against the design system, and reports Broken, Ugly or Fragile findings before fixing anything. Adapted, with credit, from Anthropic's `frontend-design` and Emil Kowalski's `break-ui`. `flow` routes UI work to both.

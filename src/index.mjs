@@ -132,18 +132,19 @@ export function search(vault, text, { project, type, status, limit = 8 } = {}) {
   }
 }
 
-// Specs that anchor this path (suffix match, so `src/a.php` finds `app/src/a.php`).
-export function governs(vault, p) {
+// Docs that anchor this path (suffix match, so `src/a.php` finds `app/src/a.php`).
+export function governingDocs(vault, p) {
   const db = openIndex(vault);
   try {
     return db
       .prepare("SELECT d.* FROM anchors a JOIN docs d ON d.id = a.doc_id WHERE a.path = ? OR a.path LIKE ? OR ? LIKE '%' || a.path ORDER BY d.id")
-      .all(p, `%/${p}`, p)
-      .map(fmt);
+      .all(p, `%/${p}`, p);
   } finally {
     db.close();
   }
 }
+
+export const governs = (vault, p) => governingDocs(vault, p).map(fmt);
 
 export function dependencies(vault, id) {
   const db = openIndex(vault);
