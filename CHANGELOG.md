@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.16
 
 - Edit-time hint. When the agent edits a file that active specs, ADRs or data models anchor, the PreToolUse hook adds one line naming them (up to 5, then "and N more"), so their text is updated in the same change instead of the Stop hook reporting them stale afterwards. It adds context only: it never blocks or asks, stays silent on files nothing anchors, and an ownership denial still wins.
 
